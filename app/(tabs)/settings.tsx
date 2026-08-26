@@ -5,24 +5,30 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Colors, Spacing, BorderRadius, FontSize, Shadows } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import {
   getUserProfile, updateUserProfile, getActiveGoals, saveGoal,
-  getAllTags, addTag, deleteTag,
+  getAllTags, addTag, deleteTag, setActiveUser,
 } from '@/database/db';
 import { UserProfile, Goal } from '@/database/types';
 import { exportToCSV, importFromCSV } from '@/utils/csv';
 import { getTodayString } from '@/utils/date';
+import { getCachedUser, clearSession } from '@/database/session';
+import { syncPush, syncPull } from '@/database/sync';
 
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [tags, setTags] = useState<string[]>([]);
+  const [currentUser, setCurrentUser] = useState(getCachedUser());
+  const [syncing, setSyncing] = useState(false);
 
   const [editProfile, setEditProfile] = useState(false);
   const [editGoal, setEditGoal] = useState(false);
@@ -103,10 +109,63 @@ export default function SettingsScreen() {
       if (!result.canceled && result.assets[0]) {
         const { imported, skipped } = await importFromCSV(result.assets[0].uri);
         Alert.alert('导入完成', `成功导入 ${imported} 条记录，跳过 ${skipped} 条重复记录`);
+        loadData();
       }
     } catch (e) {
       Alert.alert('错误', '导入失败: ' + (e as Error).message);
     }
+  };
+
+  const handleSyncUpload = async () => {
+    if (syncing) return;
+    setSyncing(true);
+    try {
+      await syncPush();
+      Alert.alert('同步成功', '本地数据已上传到云端');
+    } catch (e) {
+      Alert.alert('同步失败', (e as Error).message);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const handleSyncRestore = async () => {
+    if (syncing) return;
+    Alert.alert('云端恢复', '将用云端数据覆盖本机当前数据，确定继续？', [
+      { text: '取消', style: 'cancel' },
+      {
+        text: '恢复',
+        style: 'destructive',
+        onPress: async () => {
+          setSyncing(true);
+          try {
+            const count = await syncPull();
+            loadData();
+            Alert.alert('恢复完成', count > 0 ? `已恢复 ${count} 条记录` : '云端暂无备份数据');
+          } catch (e) {
+            Alert.alert('恢复失败', (e as Error).message);
+          } finally {
+            setSyncing(false);
+          }
+        },
+      },
+    ]);
+  };
+
+  const handleLogout = () => {
+    Alert.alert('退出登录', '退出后本机数据将保留，下次登录可再次云端恢复。确定退出？', [
+      { text: '取消', style: 'cancel' },
+      {
+        text: '退出',
+        style: 'destructive',
+        onPress: async () => {
+          await clearSession();
+          setActiveUser(null);
+          setCurrentUser(null);
+          router.replace('/login');
+        },
+      },
+    ]);
   };
 
   const handleAddTag = async () => {
@@ -150,6 +209,42 @@ export default function SettingsScreen() {
     >
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>设置</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>我的账户</Text>
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }, Shadows.sm]}>
+          <View style={styles.accountRow}>
+            <View style={[styles.accountAvatar, { backgroundColor: colors.primarySoft }]}>
+              <Ionicons name="person" size={20} color={colors.primary} />
+            </View>
+            <View style={styles.accountInfo}>
+              <Text style={[styles.accountName, { color: colors.text }]}>
+                {currentUser?.nickname || currentUser?.username || '未登录'}
+              </Text>
+              <Text style={[styles.accountUser, { color: colors.textTertiary }]}>@{currentUser?.username}</Text>
+            </View>
+            <TouchableOpacity
+              onPress={handleLogout}
+              style={[styles.logoutBtn, { borderColor: colors.border }]}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.logoutText, { color: colors.danger }]}>退出</Text>
+            </TouchableOpacity>
+          </View>
+          <SettingRow
+            icon="cloud-upload-outline"
+            title="上传到云端"
+            subtitle={syncing ? '处理中…' : '将本机数据备份到服务器'}
+            onPress={handleSyncUpload}
+          />
+          <SettingRow
+            icon="cloud-download-outline"
+            title="从云端恢复"
+            subtitle="用云端备份覆盖本机数据（换机恢复）"
+            onPress={handleSyncRestore}
+          />
+        </View>
       </View>
 
       <View style={styles.section}>
@@ -227,12 +322,12 @@ export default function SettingsScreen() {
           <SettingRow
             icon="shield-checkmark-outline"
             title="隐私说明"
-            subtitle="所有数据本地存储，无云端同步"
+            subtitle="账户数据云端加密备份，可随时上传/恢复"
           />
           <SettingRow
             icon="fitness-outline"
             title="身体数据记录"
-            subtitle="个人自用 · 本地优先 · 隐私安全"
+            subtitle="多用户 · 本地优先 · 云端备份"
           />
         </View>
       </View>
@@ -392,6 +487,41 @@ const styles = StyleSheet.create({
   title: { fontSize: FontSize.xxxl, fontWeight: '700' },
   section: { marginBottom: Spacing.xl, paddingHorizontal: Spacing.lg },
   sectionTitle: { fontSize: FontSize.sm, fontWeight: '600', marginBottom: Spacing.sm + 2, paddingHorizontal: Spacing.xs },
+  accountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm + 2,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md + 2,
+  },
+  accountAvatar: {
+    width: 42,
+    height: 42,
+    borderRadius: BorderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  accountInfo: {
+    flex: 1,
+  },
+  accountName: {
+    fontSize: FontSize.md,
+    fontWeight: '700',
+  },
+  accountUser: {
+    fontSize: FontSize.xs,
+    marginTop: 2,
+  },
+  logoutBtn: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs + 2,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+  },
+  logoutText: {
+    fontSize: FontSize.sm,
+    fontWeight: '600',
+  },
   card: { borderRadius: BorderRadius.lg, borderWidth: 1, overflow: 'hidden' },
   settingRow: {
     flexDirection: 'row',

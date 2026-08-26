@@ -1,9 +1,12 @@
-import { Tabs } from 'expo-router';
-import { Pressable, Text, View, StyleSheet } from 'react-native';
+import { Tabs, useRouter } from 'expo-router';
+import { Pressable, Text, View, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useEffect, useState } from 'react';
 import { Colors, Spacing, FontSize, BorderRadius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { loadSession } from '@/database/session';
+import { setActiveUser } from '@/database/db';
 
 type TabIconProps = {
   name: keyof typeof Ionicons.glyphMap;
@@ -19,6 +22,29 @@ export default function TabLayout() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const [authed, setAuthed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const session = await loadSession();
+      if (!session) {
+        setAuthed(false);
+        router.replace('/login');
+        return;
+      }
+      setActiveUser(session.user.id);
+      setAuthed(true);
+    })();
+  }, []);
+
+  if (authed !== true) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <Tabs
