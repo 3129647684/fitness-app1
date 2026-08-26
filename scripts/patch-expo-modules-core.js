@@ -46,6 +46,20 @@ async function compileWithEsbuild(pkgDir) {
     target: 'node18',
     external: ['react-native', 'react', 'expo', 'expo-modules-autolinking', '@expo/cli', 'invariant', 'abort-controller'],
     logLevel: 'info',
+    plugins: [
+      {
+        // Metro/expo 在 web 平台会通过平台扩展名解析到 src/web/index.web.ts，
+        // 而 esbuild 默认解析成仅导出空函数、不初始化全局的 index.ts，
+        // 导致 web/SSR 下 globalThis.expo 未定义（Cannot read 'NativeModule'）。
+        // 这里把入口的 './web' 显示指向 index.web.ts，保留 web 运行时初始化。
+        name: 'web-platform-alias',
+        setup(build) {
+          build.onResolve({ filter: /^\.\/web$/ }, (args) => {
+            return { path: path.join(args.resolveDir, 'web', 'index.web.ts') };
+          });
+        },
+      },
+    ],
   });
 
   if (fs.existsSync(path.join(pkgDir, 'build', 'index.js'))) {

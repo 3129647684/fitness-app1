@@ -40,6 +40,15 @@ function patchFile(filePath) {
     if (ext) return match;
 
     const dir = path.dirname(filePath);
+
+    // 若目标存在平台变体（.web/.ios/.android），保持无扩展名导入，
+    // 让 Metro 按平台解析（补充 .js 后缀会绕过平台解析，导致 web 端加载原生实现而崩溃）
+    const base = path.basename(importPath);
+    const baseDir = path.join(dir, path.dirname(importPath));
+    for (const variant of ['.web.', '.ios.', '.android.']) {
+      if (fs.readdirSync(baseDir).some((f) => f.startsWith(base) && f.includes(variant))) return match;
+    }
+
     const candidates = [
       importPath + '.js',
       importPath + '.mjs',
