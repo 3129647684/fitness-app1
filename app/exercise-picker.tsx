@@ -4,9 +4,8 @@ import {
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import Constants from 'expo-constants';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Spacing, BorderRadius, FontSize, Shadows } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { setPendingAction } from '@/store/exerciseStore';
@@ -81,18 +80,9 @@ function categorize(item: ExerciseItem): string {
 }
 
 
-// GIF 静态服务：http://<本地IP>:3000/videos/<mediaId>.gif
-// 自动从 Expo 开发服务器 hostUri 取电脑 IP，保证真机也能访问
-const GIF_PORT = '3000';
-function resolveMediaBase(): string {
-  try {
-    const host = Constants.expoConfig?.hostUri?.split(':')[0];
-    if (host) return `http://${host}:${GIF_PORT}`;
-  } catch {}
-  return `http://localhost:${GIF_PORT}`;
-}
-const MEDIA_BASE = resolveMediaBase();
-const gifUrl = (mediaId?: string) => (mediaId ? `${MEDIA_BASE}/videos/${mediaId}.gif` : '');
+// 动作演示 GIF：随 App 打包（assets/videos），通过资源映射表引用，完全离线可用
+import { gifAssets } from '@/constants/gifAssets';
+const gifSource = (mediaId?: string) => (mediaId ? gifAssets[mediaId] : undefined) ?? null;
 
 
 const EXERCISES: ExerciseItem[] = require('../assets/data/exercises.json');
@@ -150,7 +140,7 @@ function MuscleIcon({ cat, color, size = 26 }: { cat: string; color: string; siz
 function ActionCard({ item, onPress }: { item: ExerciseItem; onPress: () => void }) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
-  const uri = gifUrl(item.mediaId);
+  const gif = gifSource(item.mediaId);
   const [imgError, setImgError] = useState(false);
 
   return (
@@ -164,9 +154,9 @@ function ActionCard({ item, onPress }: { item: ExerciseItem; onPress: () => void
         <Ionicons name="star-outline" size={16} color={colors.textTertiary} />
       </View>
       <View style={[styles.gifWrap, { backgroundColor: colors.surfaceVariant }]}>
-        {uri && !imgError ? (
+        {gif && !imgError ? (
           <Image
-            source={{ uri }}
+            source={gif}
             style={styles.gif}
             resizeMode="contain"
             onError={() => setImgError(true)}
@@ -399,14 +389,14 @@ function PreviewCard({ item, onCancel, onConfirm, colors }: {
   onConfirm: () => void;
   colors: any;
 }) {
-  const uri = gifUrl(item.mediaId);
+  const gif = gifSource(item.mediaId);
   const [imgError, setImgError] = useState(false);
 
   return (
     <View style={[styles.previewCard, { backgroundColor: colors.card }]}>
       <View style={styles.previewGifWrap}>
-        {uri && !imgError ? (
-          <Image source={{ uri }} style={styles.previewGif} resizeMode="contain" animate={true} onError={() => setImgError(true)} />
+        {gif && !imgError ? (
+          <Image source={gif} style={styles.previewGif} resizeMode="contain" onError={() => setImgError(true)} />
         ) : (
           <View style={[styles.previewGifPlaceholder, { backgroundColor: colors.surfaceVariant }]}>
             <Ionicons name="barbell-outline" size={40} color={colors.textTertiary} />

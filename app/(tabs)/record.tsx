@@ -11,6 +11,7 @@ import { FoodDatabase, MealTypeOptions, calcFoodNutrition } from '@/constants/fo
 import { CardioDatabase, calcStrengthCalorie, calcCardioCalorie } from '@/constants/fitness';
 import { takePendingAction } from '@/store/exerciseStore';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { LinearGradient } from 'expo-linear-gradient';
 import { InputField } from '@/components/InputField';
 import { TagChip } from '@/components/TagChip';
 import {
@@ -343,7 +344,7 @@ export default function RecordScreen() {
       exerciseDuration, sleepDuration, remark,
       sleepScore > 0, selectedTags.length > 0, exerciseType !== 'none', mood > 0, isMenstrual,
       foodList.length > 0, sportList.length > 0,
-    ].some(v => v !== '' && v !== 0 && v !== false);
+    ].some((v: unknown) => v !== '' && v !== 0 && v !== false);
 
     if (!hasData) {
       Alert.alert('提示', '至少录入一项有效数据才可保存');
@@ -1035,10 +1036,17 @@ export default function RecordScreen() {
       </ScrollView>
 
       <View style={[styles.bottomBar, { backgroundColor: colors.surface, borderTopColor: colors.border, paddingBottom: insets.bottom || Spacing.md }]}>
-        <TouchableOpacity style={[styles.saveButton, { backgroundColor: colors.primary }, Shadows.md]} onPress={validateAndSave} activeOpacity={0.85}>
-          <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
-          <Text style={styles.saveButtonText}>保存记录</Text>
-        </TouchableOpacity>
+        <LinearGradient
+          colors={colorScheme === 'dark' ? ['#2D6A4F', '#1B4332'] : ['#52B788', '#2D6A4F']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.saveButton, Shadows.md]}
+        >
+          <TouchableOpacity style={styles.saveButtonInner} onPress={validateAndSave} activeOpacity={0.85}>
+            <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
+            <Text style={styles.saveButtonText}>保存记录</Text>
+          </TouchableOpacity>
+        </LinearGradient>
       </View>
 
       {FoodPickerModal()}
@@ -1076,7 +1084,8 @@ const styles = StyleSheet.create({
   moodEmoji: { fontSize: 22 },
   moodLabel: { fontSize: 10, fontWeight: '500' },
   bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: Spacing.md, borderTopWidth: 1 },
-  saveButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.md + 4, borderRadius: BorderRadius.lg },
+  saveButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.md + 4, borderRadius: BorderRadius.lg, overflow: 'hidden' },
+  saveButtonInner: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.md + 4 },
   saveButtonText: { color: '#FFFFFF', fontSize: FontSize.lg, fontWeight: '600' },
   summaryBadge: { paddingHorizontal: Spacing.sm + 4, paddingVertical: Spacing.xs, borderRadius: BorderRadius.full, marginRight: Spacing.xs },
   summaryText: { fontSize: FontSize.xs, fontWeight: '700' },
