@@ -132,10 +132,10 @@ const MainTabsNavigator: React.FC = () => {
         name="History"
         component={HistoryScreen}
         options={{
-          title: '历史',
+          title: '日历',
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
-              name={focused ? 'today' : 'today-outline' as any}
+              name={focused ? 'calendar' : 'calendar-outline' as any}
               focused={focused}
               size={iconSize}
             />
@@ -146,10 +146,10 @@ const MainTabsNavigator: React.FC = () => {
         name="Stats"
         component={StatsScreen}
         options={{
-          title: '统计',
+          title: '趋势',
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
-              name={focused ? 'stats-chart' : 'stats-chart-outline' as any}
+              name={focused ? 'bar-chart' : 'bar-chart-outline' as any}
               focused={focused}
               size={iconSize}
             />
@@ -160,10 +160,10 @@ const MainTabsNavigator: React.FC = () => {
         name="Settings"
         component={SettingsScreen}
         options={{
-          title: '设置',
+          title: '我的',
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
-              name={focused ? 'settings' : 'settings-outline'}
+              name={focused ? 'person' : 'person-outline'}
               focused={focused}
               size={iconSize}
             />
