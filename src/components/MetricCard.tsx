@@ -1,20 +1,21 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, IconName } from '@/components/Icons';
 import { Colors, Spacing, BorderRadius, FontSize, Shadows } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useResponsiveTokens } from '@/hooks/useResponsive';
 
 interface MetricCardProps {
   label: string;
   value: string | number | null;
   unit?: string;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: IconName;
   color?: string;
   change?: { value: number; direction: 'up' | 'down' | 'flat' } | null;
 }
 
 // 常用指标默认图标
-const DEFAULT_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
+const DEFAULT_ICONS: Record<string, IconName> = {
   体重: 'scale-outline',
   'BMI': 'analytics-outline',
   腰围: 'resize-outline',
@@ -30,33 +31,71 @@ const DEFAULT_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
 export function MetricCard({ label, value, unit, icon, color, change }: MetricCardProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const tokens = useResponsiveTokens();
+  const s = tokens.spacing;
+  const f = tokens.fontSize;
+  const r = tokens.borderRadius;
+
   const displayValue = value === null || value === undefined || value === '' ? '未记录' : String(value);
   const isEmpty = value === null || value === undefined || value === '';
   const accent = color ?? colors.primary;
   const cardIcon = icon ?? DEFAULT_ICONS[label] ?? 'ellipse-outline';
 
+  // 窄屏时每列占 48%（保留 gap 间距），保证两列对齐、单卡片不挤压
+  const cardWidth = tokens.isCompact
+    ? { flexBasis: '48%' as const, maxWidth: '48%' as const }
+    : undefined;
+
   return (
-    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.borderLight }, Shadows.sm]}>
-      <View style={[styles.iconWrap, { backgroundColor: isEmpty ? colors.surfaceVariant : accent + (colorScheme === 'dark' ? '33' : '1A') }]}>
-        <Ionicons name={cardIcon} size={15} color={isEmpty ? colors.textTertiary : accent} />
+    <View style={[
+      styles.card,
+      cardWidth,
+      {
+        backgroundColor: colors.card,
+        borderColor: colors.borderLight,
+        padding: s.md + (tokens.isCompact ? 0 : 2),
+        borderRadius: r.lg,
+        minHeight: tokens.isCompact ? 88 : 96,
+        minWidth: tokens.isCompact ? 0 : 140,
+      },
+      Shadows.sm,
+    ]}>
+      <View style={[styles.iconWrap, {
+        backgroundColor: isEmpty ? colors.surfaceVariant : accent + (colorScheme === 'dark' ? '33' : '1A'),
+        width: tokens.isCompact ? 24 : 28,
+        height: tokens.isCompact ? 24 : 28,
+        borderRadius: r.sm,
+        marginBottom: s.sm,
+      }]}>
+        <Icon name={cardIcon} size={tokens.isCompact ? 13 : 15} color={isEmpty ? colors.textTertiary : accent} />
       </View>
-      <Text style={[styles.label, { color: colors.textSecondary }]}>{label}</Text>
+      <Text style={[styles.label, { color: colors.textSecondary, fontSize: f.sm }]}>{label}</Text>
       <View style={styles.valueRow}>
         <Text
           numberOfLines={1}
           adjustsFontSizeToFit
-          style={[styles.value, { color: isEmpty ? colors.textTertiary : accent }]}
+          style={[styles.value, {
+            color: isEmpty ? colors.textTertiary : accent,
+            fontSize: tokens.isCompact ? f.xxl : f.xxxl,
+          }]}
         >
           {displayValue}
         </Text>
         {unit && !isEmpty && (
-          <Text style={[styles.unit, { color: colors.textTertiary }]}>{unit}</Text>
+          <Text style={[styles.unit, { color: colors.textTertiary, fontSize: f.xs }]}>{unit}</Text>
         )}
       </View>
       {change && change.value > 0 && (
         <View style={styles.changeRow}>
-          <Ionicons name={change.direction === 'up' ? 'trending-up' : 'trending-down'} size={12} color={change.direction === 'up' ? colors.danger : colors.success} />
-          <Text style={[styles.change, { color: change.direction === 'up' ? colors.danger : colors.success }]}>
+          <Icon
+            name={change.direction === 'up' ? 'trending-up' : 'trending-down'}
+            size={tokens.isCompact ? 11 : 12}
+            color={change.direction === 'up' ? colors.danger : colors.success}
+          />
+          <Text style={[styles.change, {
+            color: change.direction === 'up' ? colors.danger : colors.success,
+            fontSize: f.xs,
+          }]}>
             {change.value}
           </Text>
         </View>
@@ -68,22 +107,13 @@ export function MetricCard({ label, value, unit, icon, color, change }: MetricCa
 const styles = StyleSheet.create({
   card: {
     flex: 1,
-    minWidth: 140,
-    padding: Spacing.md + 2,
-    borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    minHeight: 96,
   },
   iconWrap: {
-    width: 28,
-    height: 28,
-    borderRadius: BorderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.sm,
   },
   label: {
-    fontSize: FontSize.sm,
     fontWeight: '500',
     marginBottom: 2,
   },
@@ -93,12 +123,10 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   value: {
-    fontSize: FontSize.xxxl,
     fontWeight: '800',
     letterSpacing: -0.5,
   },
   unit: {
-    fontSize: FontSize.xs,
     fontWeight: '500',
   },
   changeRow: {
@@ -108,7 +136,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   change: {
-    fontSize: FontSize.xs,
     fontWeight: '700',
   },
 });

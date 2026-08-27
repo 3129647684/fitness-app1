@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, IconName } from '@/components/Icons';
 import { Colors, Spacing, BorderRadius, FontSize, Shadows } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
@@ -9,7 +9,7 @@ interface StatCardProps {
   value: string | number;
   unit?: string;
   sublabel?: string;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: IconName;
   color?: string;
 }
 
@@ -27,7 +27,7 @@ export function StatCard({ label, value, unit, sublabel, icon, color }: StatCard
             { backgroundColor: accentColor + (colorScheme === 'dark' ? '33' : '17') },
           ]}
         >
-          <Ionicons name={icon} size={18} color={accentColor} />
+          <Icon name={icon} size={18} color={accentColor} />
         </View>
       )}
       <Text style={[styles.label, { color: colors.textSecondary }]}>{label}</Text>

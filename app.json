@@ -1,26 +1,5 @@
 {
-  "expo": {
-    "name": "身体数据记录",
-    "slug": "bodydata-app",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "scheme": "bodydataapp",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": false,
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.personal.bodydata"
-    },
-    "android": {
-      "package": "com.personal.bodydata"
-    },
-    "web": {
-      "bundler": "metro",
-      "output": "static"
-    },
-    "plugins": [],
-    "experiments": {
-      "typedRoutes": "enabled"
-    }
-  }
+  "name": "BodyDataApp",
+  "displayName": "身体数据记录",
+  "slug": "bodydata-app"
 }

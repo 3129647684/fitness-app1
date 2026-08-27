@@ -1,169 +1,94 @@
-export const Colors = {
+﻿export const Colors = {
+  brand: {
+    primary: '#2D6A4F',
+    primarySoft: '#40916C',
+    accent: '#52B788',
+    warn: '#E07A5F',
+    golden: '#E9C46A',
+  },
   light: {
     primary: '#2D6A4F',
-    primaryLight: '#52B788',
-    primaryDark: '#1B4332',
-    primarySoft: '#D8F3DC',
-
-    background: '#FAFAF7',
-    surface: '#FFFFFF',
-    surfaceVariant: '#F5F3EF',
-    card: '#FFFFFF',
-
-    text: '#1A1A1A',
-    textSecondary: '#6C6C6C',
-    textTertiary: '#A8A8A8',
-
-    border: '#E8E5E0',
-    borderLight: '#F0EDE8',
-
-    danger: '#C7555A',
-    dangerLight: '#FDE8E8',
-    success: '#40916C',
+    primarySoft: '#40916C',
+    success: '#2D6A4F',
+    danger: '#E07A5F',
+    warning: '#E9C46A',
+    info: '#20B2AA',
+    dangerLight: '#F8D7D0',
     successLight: '#D8F3DC',
-    warning: '#D4956B',
-    warningLight: '#FDF0E5',
-    info: '#5B8AA6',
-    infoLight: '#E5F0F5',
-    accent: '#8B7AA6',
-    accentLight: '#EDE8F5',
+    accent: '#52B788',
+    background: '#F6FFF8',
+    card: '#FFFFFF',
+    surface: '#FFFFFF',
+    surfaceVariant: '#EDF7F0',
+    text: '#1B4332',
+    textSecondary: '#52B788',
+    textTertiary: '#95D5B2',
+    subtext: '#52B788',
+    border: '#D8F3DC',
+    borderLight: '#E8F5EB',
+    muted: '#95D5B2',
   },
   dark: {
-    primary: '#52B788',
-    primaryLight: '#74C69D',
-    primaryDark: '#2D6A4F',
-    primarySoft: '#1B3A2A',
-
-    background: '#121212',
-    surface: '#1E1E1E',
-    surfaceVariant: '#2A2A2A',
-    card: '#1E1E1E',
-
-    text: '#F0F0F0',
-    textSecondary: '#9E9E9E',
-    textTertiary: '#6C6C6C',
-
-    border: '#333333',
-    borderLight: '#2A2A2A',
-
-    danger: '#E07070',
-    dangerLight: '#3A1A1A',
+    primary: '#40916C',
+    primarySoft: '#52B788',
     success: '#52B788',
-    successLight: '#1A3A2A',
-    warning: '#E0A577',
-    warningLight: '#3A2A1A',
-    info: '#7BAACC',
-    infoLight: '#1A2A35',
-    accent: '#A091C0',
-    accentLight: '#2A2435',
+    danger: '#E07A5F',
+    warning: '#E9C46A',
+    info: '#48D1CC',
+    dangerLight: '#5C3A2E',
+    successLight: '#1B4332',
+    accent: '#52B788',
+    background: '#081C15',
+    card: '#1B4332',
+    surface: '#1B4332',
+    surfaceVariant: '#143326',
+    text: '#D8F3DC',
+    textSecondary: '#74C69D',
+    textTertiary: '#40916C',
+    subtext: '#74C69D',
+    border: '#2D6A4F',
+    borderLight: '#24523D',
+    muted: '#40916C',
   },
 };
 
-export const Spacing = {
-  xs: 6,
-  sm: 10,
-  md: 14,
-  lg: 18,
-  xl: 22,
-  xxl: 28,
-  xxxl: 36,
-};
+export type BrandColor = typeof Colors.brand;
+export type ThemeColors = typeof Colors.light;
 
-export const BorderRadius = {
-  sm: 12,
-  md: 16,
-  lg: 20,
-  xl: 24,
-  xxl: 28,
-  full: 9999,
-};
-
-export const FontSize = {
-  xs: 11,
-  sm: 13,
-  md: 15,
-  lg: 17,
-  xl: 20,
-  xxl: 24,
-  xxxl: 30,
-  display: 36,
-};
-
+export const Spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 28, xxxl: 40 };
+export const BorderRadius = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, pill: 9999, full: 9999 };
+export const FontSize = { xs: 11, sm: 13, md: 15, lg: 18, xl: 22, xxl: 28, xxxl: 36 };
 export const Shadows = {
-  sm: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  md: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.07,
-    shadowRadius: 12,
-    elevation: 3,
-  },
-  lg: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 5,
-  },
+  sm: { shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+  md: { shadowColor: '#000', shadowOpacity: 0.10, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 4 },
+  lg: { shadowColor: '#000', shadowOpacity: 0.14, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 8 },
 };
 
-export const DefaultTags = [
-  { name: '训练日', color: '#2D6A4F' },
-  { name: '休息日', color: '#6C6C6C' },
-  { name: '暴食日', color: '#C7555A' },
-  { name: '熬夜', color: '#8B7AA6' },
-  { name: '清淡饮食', color: '#40916C' },
-];
-
-export const ExerciseTypes = [
-  { value: 'strength', label: '力量训练', icon: 'barbell' },
-  { value: 'cardio', label: '有氧运动', icon: 'bicycle' },
-  { value: 'walk', label: '日常散步', icon: 'walk' },
-  { value: 'none', label: '无运动', icon: 'remove-circle-outline' },
-];
+export const DefaultTags = ['熬夜', '运动日', '饮食放纵', '经期', '旅行', '压力大', '感冒', '恢复期', '增肌期', '减脂期'] as const;
 
 export const BodyStatusOptions = [
-  { value: 'muscle_sore', label: '肌肉酸痛' },
-  { value: 'fatigue', label: '疲惫乏力' },
-  { value: 'edema', label: '水肿' },
-  { value: 'gi_discomfort', label: '肠胃不适' },
-];
+  { value: 'lean', label: '偏瘦' },
+  { value: 'normal', label: '正常' },
+  { value: 'overweight', label: '超重' },
+  { value: 'obese', label: '肥胖' },
+] as const;
 
 export const MoodOptions = [
-  { value: 1, label: '低落', emoji: '😞' },
-  { value: 2, label: '一般', emoji: '😐' },
-  { value: 3, label: '平稳', emoji: '🙂' },
-  { value: 4, label: '愉悦', emoji: '😊' },
-  { value: 5, label: '极佳', emoji: '😄' },
-];
+  { value: 'happy', label: '开心' },
+  { value: 'good', label: '良好' },
+  { value: 'normal', label: '一般' },
+  { value: 'tired', label: '疲惫' },
+  { value: 'sad', label: '低落' },
+  { value: 'anxious', label: '焦虑' },
+] as const;
 
-export const MetricLabels: Record<string, { label: string; unit: string }> = {
-  weight: { label: '体重', unit: 'kg' },
-  body_fat: { label: '体脂率', unit: '%' },
-  muscle_mass: { label: '肌肉量', unit: 'kg' },
-  water_rate: { label: '水分率', unit: '%' },
-  bmr: { label: '基础代谢', unit: 'kcal' },
-  bmi: { label: 'BMI', unit: '' },
-  chest: { label: '胸围', unit: 'cm' },
-  waist: { label: '腰围', unit: 'cm' },
-  hip: { label: '臀围', unit: 'cm' },
-  upper_arm: { label: '上臂围', unit: 'cm' },
-  thigh: { label: '大腿围', unit: 'cm' },
-  calf: { label: '小腿围', unit: 'cm' },
-  neck: { label: '颈围', unit: 'cm' },
-  heart_rate: { label: '静息心率', unit: 'bpm' },
-  steps: { label: '步数', unit: '步' },
-  water_intake: { label: '饮水量', unit: 'ml' },
-  body_temperature: { label: '体温', unit: '\u00b0C' },
-  mood: { label: '心情', unit: '' },
-  sleep_duration: { label: '睡眠时长', unit: 'h' },
-  sleep_score: { label: '睡眠质量', unit: '星' },
-  food_cal: { label: '热量摄入', unit: 'kcal' },
-  sport_cal: { label: '运动消耗', unit: 'kcal' },
+export const MetricLabels: Record<string, { label: string; unit: string; icon: 'scale-outline' | 'body-outline' | 'analytics-outline' | 'walk-outline' | 'water-outline' | 'bed-outline' | 'pulse-outline' | 'resize-outline' }> = {
+  weight: { label: '体重', unit: 'kg', icon: 'scale-outline' },
+  bmi: { label: 'BMI', unit: '', icon: 'body-outline' },
+  bodyFat: { label: '体脂率', unit: '%', icon: 'analytics-outline' },
+  muscleMass: { label: '肌肉量', unit: 'kg', icon: 'walk-outline' },
+  waist: { label: '腰围', unit: 'cm', icon: 'resize-outline' },
+  water: { label: '饮水量', unit: 'ml', icon: 'water-outline' },
+  sleepHours: { label: '睡眠', unit: 'h', icon: 'bed-outline' },
+  heartRate: { label: '心率', unit: 'bpm', icon: 'pulse-outline' },
 };

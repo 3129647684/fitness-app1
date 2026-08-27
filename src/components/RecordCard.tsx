@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/components/Icons';
 import { Colors, Spacing, BorderRadius, FontSize, Shadows } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { BodyRecord, FoodItem, SportDetail } from '@/database/types';
@@ -78,7 +78,7 @@ export function RecordCard({ record, tags, onPress }: RecordCardProps) {
           return (
             <View style={[styles.subSection, { borderTopColor: colors.borderLight }]}>
               <View style={styles.subHeader}>
-                <Ionicons name="restaurant-outline" size={14} color={colors.textSecondary} />
+                <Icon name="restaurant-outline" size={14} color={colors.textSecondary} />
                 <Text style={[styles.subHeaderText, { color: colors.textSecondary }]}>饮食 · {foods.length}项</Text>
                 <Text style={[styles.subHeaderValue, { color: colors.text }]}>{totalCal} kcal</Text>
               </View>
@@ -115,7 +115,7 @@ export function RecordCard({ record, tags, onPress }: RecordCardProps) {
           return (
             <View style={[styles.subSection, { borderTopColor: colors.borderLight }]}>
               <View style={styles.subHeader}>
-                <Ionicons name="barbell-outline" size={14} color={colors.textSecondary} />
+                <Icon name="barbell-outline" size={14} color={colors.textSecondary} />
                 <Text style={[styles.subHeaderText, { color: colors.textSecondary }]}>运动 · {items.length}项</Text>
                 <Text style={[styles.subHeaderValue, { color: colors.text }]}>{totalCal.toFixed(1)} kcal</Text>
               </View>
