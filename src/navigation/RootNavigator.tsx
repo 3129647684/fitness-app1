@@ -163,7 +163,7 @@ const MainTabsNavigator: React.FC = () => {
           title: '我的',
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
-              name={focused ? 'person' : 'person-outline'}
+              name={focused ? 'settings' : 'settings-outline'}
               focused={focused}
               size={iconSize}
             />

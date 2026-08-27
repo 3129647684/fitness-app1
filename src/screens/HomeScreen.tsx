@@ -79,37 +79,41 @@ export default function HomeScreen(_props: IndexScreenProps) {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} tintColor={colors.primary} />}
     >
       <GradientView
-        colors={isDark ? ['#15351F', '#1B4332', '#234C35'] : ['#32775A', '#4E9373', '#6FAE8D']}
+        colors={isDark ? ['#15351F', '#1B4332', '#24523D'] : ['#CDE5DA', '#DEF0E7', '#EFF7F2']}
         style={{
           paddingTop: insets.top + s.lg,
           paddingBottom: tokens.isCompact ? s.xl : s.xxl,
           paddingHorizontal: s.lg,
           borderBottomLeftRadius: r.xl,
           borderBottomRightRadius: r.xl,
+          position: 'relative',
         }}
       >
+        <View pointerEvents="none" style={styles.heroGlow} />
         <View style={styles.heroTop}>
-          <Text style={[styles.heroDate, { fontSize: f.sm }]}>{formatDateWithWeekday(todayStr)}</Text>
+          <Text style={[styles.heroDate, { color: isDark ? 'rgba(255,255,255,0.72)' : '#3E7A5C', fontSize: f.sm }]}>
+            {formatDateWithWeekday(todayStr)}
+          </Text>
           <View style={styles.heroBadge}>
             <Icon name={hasRecord ? 'checkmark-circle' : 'calendar-outline'} size={tokens.isCompact ? 12 : 14} color={hasRecord ? '#4C8A64' : '#7C5C3A'} />
             <Text style={[styles.heroBadgeText, { fontSize: f.xs }]}>{hasRecord ? '已完成' : '待录入'}</Text>
           </View>
         </View>
 
-        <Text style={[styles.heroTitle, { fontSize: tokens.isCompact ? f.xl : f.xxl }]}>
+        <Text style={[styles.heroTitle, { color: isDark ? '#FFFFFF' : '#1F5C40', fontSize: tokens.isCompact ? f.xl : f.xxl }]}>
           {hasRecord ? '今日已完成记录' : '今日待录入'}
         </Text>
-        <Text style={[styles.heroSub, { fontSize: f.sm }]}>
+        <Text style={[styles.heroSub, { color: isDark ? 'rgba(255,255,255,0.82)' : '#4E9B78', fontSize: f.sm }]}>
           {hasRecord ? '继续保持，胜利来自每一天' : '花一分钟记录今天的身体状态'}
         </Text>
 
         <GradientView
-          colors={isDark ? ['#2D6A4F', '#40916C'] : ['#4C9E78', '#63B98C']}
+          colors={isDark ? ['#2D6A4F', '#40916C'] : ['#3FA372', '#5EB588']}
           style={[styles.addBtn, Shadows.md]}
         >
           <TouchableOpacity style={styles.addBtnInner} onPress={toRecord} activeOpacity={0.9}>
             <View style={styles.addIconWrap}>
-              <Icon name="add" size={tokens.isCompact ? 18 : 20} color="#FFFFFF" />
+              <Icon name="add" size={tokens.isCompact ? 18 : 20} color="#3FA372" />
             </View>
             <Text style={[styles.addBtnText, { fontSize: tokens.isCompact ? f.md : f.lg }]}>
               {hasRecord ? '编辑今日记录' : '新增今日记录'}
@@ -163,6 +167,15 @@ export default function HomeScreen(_props: IndexScreenProps) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  heroGlow: {
+    position: 'absolute',
+    top: -40,
+    right: -60,
+    width: 220,
+    height: 220,
+    borderRadius: 9999,
+    backgroundColor: 'rgba(255,255,255,0.28)',
+  },
   heroTop: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -170,7 +183,6 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   heroDate: {
-    color: 'rgba(255,255,255,0.72)',
     fontWeight: '600',
   },
   heroBadge: {
@@ -187,12 +199,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   heroTitle: {
-    color: '#FFFFFF',
     fontWeight: '800',
     marginTop: Spacing.xs,
   },
   heroSub: {
-    color: 'rgba(255,255,255,0.82)',
     marginTop: 4,
   },
   addBtn: {
@@ -210,7 +220,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },

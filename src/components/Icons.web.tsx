@@ -466,6 +466,68 @@ const iconPaths: Record<string, React.ReactNode> = {
       />
     </>
   ),
+  'scale-outline': (
+    <>
+      <Rect x="3" y="7" width="18" height="13" rx="3" stroke="currentColor" strokeWidth="1.8" fill="none" />
+      <Circle cx="12" cy="13" r="3" stroke="currentColor" strokeWidth="1.8" fill="none" />
+      <Path d="M12 12l1.2 1.6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </>
+  ),
+  'resize-outline': (
+    <>
+      <Rect x="2" y="8" width="20" height="8" rx="2" stroke="currentColor" strokeWidth="1.8" fill="none" />
+      <Path d="M7 8v8M12 8v8M17 8v8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </>
+  ),
+  'body-outline': (
+    <>
+      <Circle cx="12" cy="7" r="3" stroke="currentColor" strokeWidth="1.8" fill="none" />
+      <Path d="M5 21c0-4 3-7 7-7s7 3 7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+    </>
+  ),
+  'pie-chart-outline': (
+    <>
+      <Path d="M12 3a9 9 0 109 9h-9V3z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" fill="none" />
+      <Path d="M15 3.5A9 9 0 0120.5 9H15V3.5z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" fill="none" />
+    </>
+  ),
+  'barbell-outline': (
+    <>
+      <Rect x="2" y="9" width="3" height="6" rx="1" stroke="currentColor" strokeWidth="1.8" fill="none" />
+      <Rect x="5" y="7" width="2" height="10" rx="1" stroke="currentColor" strokeWidth="1.8" fill="none" />
+      <Rect x="17" y="7" width="2" height="10" rx="1" stroke="currentColor" strokeWidth="1.8" fill="none" />
+      <Rect x="19" y="9" width="3" height="6" rx="1" stroke="currentColor" strokeWidth="1.8" fill="none" />
+      <Line x1="7" y1="12" x2="17" y2="12" stroke="currentColor" strokeWidth="1.8" />
+    </>
+  ),
+  'flame-outline': (
+    <Path
+      d="M12 3c2 2.5 4.5 5 4.5 8.5a4.5 4.5 0 01-9 0C7.5 8.5 10 5.5 12 3z"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      fill="none"
+      strokeLinejoin="round"
+    />
+  ),
+  'fitness-outline': (
+    <Path
+      d="M3 12h4l2-5 3 10 2-5h7"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="none"
+    />
+  ),
+  'trending-up-outline': (
+    <>
+      <Path d="M3 17l6-6 4 4 7-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <Path d="M15 8h5v5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    </>
+  ),
+  'chevron-forward': (
+    <Path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+  ),
 };
 
 const Icon: React.FC<IconProps> = ({ name, size = 24, color = '#000' }) => {

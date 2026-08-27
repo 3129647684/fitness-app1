@@ -31,23 +31,23 @@ export function MetricTile({ label, value, unit, icon, onPress }: MetricTileProp
           styles.iconWrap,
           {
             backgroundColor: colors.surfaceVariant,
-            width: tokens.isCompact ? 36 : 42,
-            height: tokens.isCompact ? 36 : 42,
+            width: tokens.isCompact ? 40 : 46,
+            height: tokens.isCompact ? 40 : 46,
             borderRadius: r.full,
           },
         ]}
       >
-        <Icon name={icon} size={tokens.isCompact ? 17 : 19} color={colors.primary} />
+        <Icon name={icon} size={tokens.isCompact ? 19 : 21} color={colors.primary} />
       </View>
       <View style={styles.tileBody}>
-        <Text style={[styles.label, { color: colors.textSecondary, fontSize: f.sm }]}>{label}</Text>
+        <Text style={[styles.label, { color: colors.text, fontSize: f.sm }]}>{label}</Text>
         <Text
           numberOfLines={1}
           adjustsFontSizeToFit
           style={[
             styles.value,
             {
-              color: isEmpty ? colors.primary : colors.text,
+              color: isEmpty ? '#4A9E72' : colors.text,
               fontSize: isEmpty ? f.lg : f.xxl,
               fontWeight: isEmpty ? '600' : '800',
             },
