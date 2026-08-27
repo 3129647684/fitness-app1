@@ -18,14 +18,17 @@
 
 ## 快捷运行（PC 上预览，推荐 Web 端）
 
-开两个终端：
+**一键启动(推荐)**：
 
 ```bash
-# 终端 1：启动后端（端口 4000，负责认证/同步/GIF 动图）
-npm run server
+npm run dev
+```
 
-# 终端 2：启动 Web 预览（端口 8082）
-npm run web
+`npm run dev` 会一起启动后端(4000)与 Web 预览(8082)，并把两个进程的输出加上 `[server]`/`[web]` 前缀。已在运行的端口会被自动复用、跳过启动。没有重复占用时再按需用命令：
+
+```bash
+npm run server   # 仅后(端口 4000，认证/同步/GIF 动图)
+npm run web      # 仅 Web 预览(端口 8082)
 ```
 
 浏览器打开 <http://localhost:8082> 即可看到应用。默认请求 `http://localhost:4000`，登录、同步、动作 GIF 均可正常使用。

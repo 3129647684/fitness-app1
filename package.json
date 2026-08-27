@@ -5,6 +5,7 @@
   "description": "身体数据记录 - 裸 React Native + React Native Web，支持 Android/iOS/Web，附带服务端数据管理后台",
   "scripts": {
     "start": "react-native start",
+    "dev": "node scripts/dev.mjs",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "web": "webpack serve --mode development --config webpack/webpack.config.js",
