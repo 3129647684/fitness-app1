@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   typecheck:
@@ -61,3 +62,40 @@ jobs:
 
       - name: ESLint 检查
         run: npx eslint src/ --ext .ts,.tsx || true
+
+  build-android:
+    name: 构建 Android APK (EAS Build)
+    runs-on: ubuntu-latest
+    # 只在 main 分支 push 或手动触发时构建，PR 不构建（节省时间）
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    needs: [typecheck, server-test]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: 安装依赖
+        run: npm install --legacy-peer-deps
+
+      - name: 安装 EAS CLI
+        run: npm install -g eas-cli
+
+      - name: 登录 Expo
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: eas whoami
+
+      - name: 构建 Android APK (preview)
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: eas build --platform android --profile preview --non-interactive --no-wait
+
+      - name: 输出构建链接
+        run: |
+          echo "✅ Android APK 构建已提交到 EAS Build"
+          echo "📱 项目: https://expo.dev/accounts/3129647684/projects/bodydata-app/builds"
+          echo "⏳ 构建通常需要 10-20 分钟，完成后可在上方链接下载 APK"
