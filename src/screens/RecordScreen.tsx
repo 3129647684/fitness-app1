@@ -64,7 +64,7 @@ export default function RecordScreen(_props: RecordScreenProps) {
     if (saving) return;
     setSaving(true);
     try {
-      const record: Partial<BodyRecord> = {
+      const record: Partial<BodyRecord> & { record_date: string } = {
         record_date: editingDate,
         weight: weight ? parseFloat(weight) : null,
         bmi: computedBMI,
@@ -135,7 +135,7 @@ export default function RecordScreen(_props: RecordScreenProps) {
         </View>
 
         <View style={[styles.tipCard, { backgroundColor: colors.primary + '0D', borderColor: colors.primary + '20' }]}>
-          <Icons name="information-circle" size={18} color={colors.primary} />
+          <Icons name="information-circle-outline" size={18} color={colors.primary} />
           <Text style={[styles.tipText, { color: colors.textSecondary, fontSize: f.sm }]}>
             只需记录核心指标，系统会自动计算 BMI。
           </Text>

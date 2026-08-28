@@ -22,5 +22,5 @@
     }
   },
   "include": ["src/**/*", "index.js", "App.tsx", "metro.config.js", "webpack.config.js"],
-  "exclude": ["node_modules", "web-build", "dist", ".expo"]
+  "exclude": ["node_modules", "web-build", "dist", ".expo", "**/*.test.ts", "**/*.test.tsx"]
 }
