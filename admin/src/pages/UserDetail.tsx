@@ -4,6 +4,7 @@ import client from '@/api/client'
 import KPICard from '@/components/KPICard'
 import type { UserDetailData } from '@/types'
 
+// 精简版用户详情：移除肌肉量等冗余字段
 function UserDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -28,11 +29,6 @@ function UserDetail() {
     fetchUser()
   }, [id])
 
-  const fmt = (n: number | null | undefined, digits = 1): string => {
-    if (n === undefined || n === null) return '—'
-    return n.toFixed(digits)
-  }
-
   const fmtInt = (n: number | null | undefined): string => {
     if (n === undefined || n === null) return '—'
     return n.toLocaleString()
@@ -42,26 +38,21 @@ function UserDetail() {
     <div className="page-container">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button
-            onClick={() => navigate(-1)}
-            className="btn btn-secondary btn-sm"
-          >
-            ← 返回
-          </button>
+          <button onClick={() => navigate(-1)} className="btn btn-secondary btn-sm">← 返回</button>
           <h1 className="page-title" style={{ marginBottom: 0 }}>用户详情</h1>
         </div>
       </div>
 
       {loading ? (
-        <div className="card" style={{ minHeight: 400 }}>
+        <div className="card" style={{ minHeight: 300 }}>
           <div className="loading-wrap">加载中…</div>
         </div>
       ) : error ? (
-        <div className="card" style={{ minHeight: 400 }}>
+        <div className="card" style={{ minHeight: 300 }}>
           <div className="error-wrap">{error}</div>
         </div>
       ) : !user ? (
-        <div className="card" style={{ minHeight: 400 }}>
+        <div className="card" style={{ minHeight: 300 }}>
           <div className="error-wrap">用户不存在</div>
         </div>
       ) : (
@@ -69,34 +60,25 @@ function UserDetail() {
           <div className="card" style={{ marginBottom: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
               <div style={{
-                width: 72,
-                height: 72,
-                borderRadius: '50%',
-                background: 'var(--primary-bg)',
-                color: 'var(--primary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 28,
-                fontWeight: 700,
+                width: 72, height: 72, borderRadius: '50%',
+                background: 'var(--primary-bg)', color: 'var(--primary)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 28, fontWeight: 700,
               }}>
                 {(user.nickname || user.username).charAt(0).toUpperCase()}
               </div>
               <div style={{ flex: 1, minWidth: 200 }}>
                 <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>
-                  {user.nickname}
+                  {user.nickname || user.username}
                 </div>
                 <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 8 }}>
                   @{user.username} · ID {user.id}
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, fontSize: 13, color: 'var(--text-muted)' }}>
                   <span>注册时间：{user.created_at}</span>
-                  <span>最近登录：{user.last_login_at || '—'}</span>
                 </div>
               </div>
-              <Link to="/dashboard/users" className="btn btn-secondary btn-sm">
-                查看全部用户
-              </Link>
+              <Link to="/dashboard/users" className="btn btn-secondary btn-sm">查看全部用户</Link>
             </div>
           </div>
 
@@ -104,20 +86,10 @@ function UserDetail() {
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
             gap: 16,
-            marginBottom: 20,
           }}>
-            <KPICard title="最新体重 (kg)" value={fmt(user.latestWeight)} icon="⚖️" />
-            <KPICard title="最新 BMI" value={fmt(user.latestBMI)} icon="📏" />
-            <KPICard title="最新体脂率 (%)" value={fmt(user.latestBodyFat)} icon="💧" />
-            <KPICard title="肌肉量 (kg)" value={fmt(user.latestMuscleMass)} icon="💪" />
-            <KPICard title="累计记录数" value={fmtInt(user.totalRecords)} icon="📝" />
-            <KPICard
-              title="记录区间"
-              value={user.firstRecordDate && user.lastRecordDate ? `${user.firstRecordDate} ~ ${user.lastRecordDate}` : '—'}
-              icon="📅"
-            />
-            <KPICard title="最新腰围 (cm)" value={fmt(user.waist)} icon="📐" />
-            <KPICard title="最新睡眠时长 (h)" value={fmt(user.sleepHours)} icon="🌙" />
+            <KPICard title="累计记录数" value={fmtInt(user.recordCount)} icon="📝" />
+            <KPICard title="用户 ID" value={String(user.id)} icon="🆔" />
+            <KPICard title="注册时间" value={user.created_at?.slice(0, 10) || '—'} icon="📅" />
           </div>
         </>
       )}

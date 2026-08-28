@@ -1,7 +1,8 @@
+// 管理后台类型定义（适配精简后的5核心字段）
+
 export interface AdminInfo {
   id: number | string
   username: string
-  role?: string
 }
 
 export interface AuthResponse {
@@ -9,76 +10,56 @@ export interface AuthResponse {
   admin: AdminInfo
 }
 
-// 与后端 /api/admin/stats/overview 响应保持一致（驼峰命名）
+// 总览统计（与 /api/admin/stats/overview 响应一致）
 export interface OverviewStats {
   totalUsers: number
   activeUsers7d: number
   totalRecords: number
-  recordsLast30d: number
-  avgWeight: number | null
-  avgBMI: number | null
-  avgBodyFat: number | null
-  avgMuscleMass: number | null
+  newUsers7d: number
 }
 
-// 与后端 /api/admin/stats/records_trend 响应保持一致
+// 记录趋势点（与 /api/admin/stats/growth 响应一致）
 export interface TrendPoint {
   date: string
-  recordCount: number
-  uniqueUsers: number
-}
-
-// 与后端分布接口的元素结构保持一致
-export interface DistributionItem {
-  bucket: string
   count: number
 }
 
-export interface CoreMetricsDistribution {
-  bmiDistribution: DistributionItem[]
-  weightDistribution: DistributionItem[]
-  bodyFatDistribution: DistributionItem[]
-}
-
-// 与后端 /api/admin/stats/tags_top 响应保持一致
-export interface TopTag {
-  tag_name: string
+// 指标统计（与 /api/admin/stats/records 响应一致）
+export interface MetricStats {
   count: number
+  avg: number | null
+  min: number | null
+  max: number | null
 }
 
-// 与后端 /api/admin/users 列表项保持一致
+export interface RecordsStatsResponse {
+  metrics: Record<string, MetricStats>
+}
+
+// 用户列表项（与 /api/admin/users 响应一致）
 export interface UserItem {
   id: number | string
   username: string
-  nickname: string
+  nickname: string | null
   created_at: string
-  last_login_at: string | null
-  record_count: number
-}
-
-// 与后端 /api/admin/users/:id 详情响应保持一致
-export interface UserDetailData {
-  id: number | string
-  username: string
-  nickname: string
-  created_at: string
-  last_login_at: string | null
-  totalRecords: number
-  firstRecordDate: string | null
-  lastRecordDate: string | null
-  latestWeight: number | null
-  latestBMI: number | null
-  latestBodyFat: number | null
-  latestMuscleMass: number | null
-  waist: number | null
-  sleepHours: number | null
+  updated_at: string
 }
 
 export interface UsersListResponse {
-  list: UserItem[]
+  users: UserItem[]
   total: number
   page: number
   pageSize: number
+}
+
+// 用户详情（与 /api/admin/users/:id 响应一致）
+export interface UserDetailData {
+  id: number | string
+  username: string
+  nickname: string | null
+  created_at: string
+  updated_at: string
+  recordCount: number
 }
 
 export interface LoginCredentials {
