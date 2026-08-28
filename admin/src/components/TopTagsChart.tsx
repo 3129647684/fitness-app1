@@ -32,7 +32,7 @@ function TopTagsChart({ data, title, height = 320 }: TopTagsChartProps) {
             />
             <YAxis
               type="category"
-              dataKey="tag"
+              dataKey="tag_name"
               width={80}
               tick={{ fontSize: 12, fill: '#1B4332' }}
               tickLine={false}

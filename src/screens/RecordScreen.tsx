@@ -1,10 +1,10 @@
-﻿import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Alert, KeyboardAvoidingView, Platform, Modal, TextInput, FlatList,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation, useFocusEffect, CompositeNavigationProp } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useRoute, CompositeNavigationProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { Icons } from '@/components/Icons';
@@ -34,10 +34,14 @@ export default function RecordScreen(_props: RecordScreenProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const navigation = useNavigation<RecordScreenNavigation>();
+  const route = useRoute<RecordScreenProps['route']>();
   const insets = useSafeAreaInsets();
+  // 底部安全区兜底：与 RootNavigator 保持一致，防止 Web 端 iOS Safari Home Indicator 等遮挡
+  const safeBottom = Math.max(insets.bottom || 0, Platform.OS === 'web' ? 20 : 12);
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [editingDate, setEditingDate] = useState(todayStr());
+  const [editingDate, setEditingDate] = useState(route.params?.initialDate ?? todayStr());
+  const [appliedParamDate, setAppliedParamDate] = useState<string | null>(route.params?.initialDate ?? null);
 
   const [weight, setWeight] = useState('');
   const [bodyFat, setBodyFat] = useState('');
@@ -165,7 +169,14 @@ export default function RecordScreen(_props: RecordScreenProps) {
         setStrengthWeight('');
         setStrengthModalVisible(true);
       }
-    }, [])
+
+      // 响应从 History / Calendar 跳转传入的 initialDate 参数
+      const paramDate = route.params?.initialDate ?? null;
+      if (paramDate && paramDate !== appliedParamDate) {
+        setEditingDate(paramDate);
+        setAppliedParamDate(paramDate);
+      }
+    }, [route.params?.initialDate, appliedParamDate])
   );
 
   useFocusEffect(
@@ -395,9 +406,9 @@ export default function RecordScreen(_props: RecordScreenProps) {
       if (selectedTags.length > 0) {
         await setRecordTags(recordId, selectedTags);
       }
-      Alert.alert('成功', '记录已保存', [
-        { text: '确定', onPress: () => navigation.navigate('Index') },
-      ]);
+      // 不依赖 Alert 回调（Web 端可点外部关闭 Alert），保存成功直接跳转首页
+      setTimeout(() => navigation.navigate('Index'), 200);
+      Alert.alert('成功', '记录已保存');
     } catch (e) {
       Alert.alert('错误', '保存失败: ' + (e as Error).message);
     }
@@ -449,8 +460,9 @@ export default function RecordScreen(_props: RecordScreenProps) {
                         setFoodGrams('');
                         setFoodMealType('');
                         setFoodPickerVisible(false);
-                        setFoodGramsVisible(true);
+                        setTimeout(() => setFoodGramsVisible(true), 50);
                       }}
+                      activeOpacity={0.7}
                     >
                       <Text style={[styles.foodChipName, { color: colors.text }]}>{food.name}</Text>
                       <Text style={[styles.foodChipCal, { color: colors.textTertiary }]}>{food.cal}kcal/100g</Text>
@@ -462,7 +474,7 @@ export default function RecordScreen(_props: RecordScreenProps) {
           </ScrollView>
           <TouchableOpacity
             style={[styles.customAddBtn, { backgroundColor: colors.primary }]}
-            onPress={() => { setFoodPickerVisible(false); setCustomFoodVisible(true); }}
+            onPress={() => { setFoodPickerVisible(false); setTimeout(() => setCustomFoodVisible(true), 50); }}
             activeOpacity={0.85}
           >
             <Icons name="add" size={20} color="#FFF" />
@@ -621,7 +633,10 @@ export default function RecordScreen(_props: RecordScreenProps) {
           {!strengthAction ? (
             <TouchableOpacity
               style={[styles.addListBtn, { borderColor: colors.primary }]}
-              onPress={() => navigation.navigate('ExercisePicker')}
+              onPress={() => {
+                setStrengthModalVisible(false);
+                setTimeout(() => navigation.navigate('ExercisePicker'), 50);
+              }}
               activeOpacity={0.7}
             >
               <Icons name="barbell-outline" size={18} color={colors.primary} />
@@ -766,7 +781,7 @@ export default function RecordScreen(_props: RecordScreenProps) {
     >
       <ScrollView
         style={[styles.container, { backgroundColor: colors.background }]}
-        contentContainerStyle={{ paddingTop: insets.top + Spacing.lg, paddingBottom: 100 }}
+        contentContainerStyle={{ paddingTop: insets.top + Spacing.lg, paddingBottom: 230 + safeBottom }}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
@@ -1030,7 +1045,7 @@ export default function RecordScreen(_props: RecordScreenProps) {
         </View>
       </ScrollView>
 
-      <View style={[styles.bottomBar, { backgroundColor: colors.surface, borderTopColor: colors.border, paddingBottom: insets.bottom || Spacing.md }]}>
+      <View style={[styles.bottomBar, { backgroundColor: colors.surface, borderTopColor: colors.border, paddingBottom: Math.max(safeBottom, Spacing.md) }]}>
         <GradientView
           colors={colorScheme === 'dark' ? ['#2D6A4F', '#1B4332'] : ['#52B788', '#2D6A4F']}
           start={{ x: 0, y: 0 }}
@@ -1078,7 +1093,7 @@ const styles = StyleSheet.create({
   moodBtn: { flex: 1, alignItems: 'center', paddingVertical: Spacing.sm, borderRadius: BorderRadius.md, borderWidth: 1, gap: 2 },
   moodEmoji: { fontSize: 22 },
   moodLabel: { fontSize: 10, fontWeight: '500' },
-  bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: Spacing.md, borderTopWidth: 1 },
+  bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: Spacing.lg, paddingTop: Spacing.sm + 2, borderTopWidth: 1 },
   saveButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.md + 4, borderRadius: BorderRadius.lg, overflow: 'hidden' },
   saveButtonInner: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.md + 4 },
   saveButtonText: { color: '#FFFFFF', fontSize: FontSize.lg, fontWeight: '600' },

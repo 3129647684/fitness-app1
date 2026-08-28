@@ -19,7 +19,7 @@ function DistributionBarChart({ data, title, height = 240 }: DistributionBarChar
           <BarChart data={data} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#E9ECEF" vertical={false} />
             <XAxis
-              dataKey="range"
+              dataKey="bucket"
               tick={{ fontSize: 11, fill: '#6C757D' }}
               tickLine={false}
               axisLine={{ stroke: '#E9ECEF' }}

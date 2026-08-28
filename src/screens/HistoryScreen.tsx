@@ -1,10 +1,13 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList,
   TextInput, Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { CompositeNavigationProp } from '@react-navigation/native';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Icons } from '@/components/Icons';
 import { Colors, Spacing, BorderRadius, FontSize, Shadows } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -15,7 +18,12 @@ import {
 } from '@/database/db';
 import { BodyRecord } from '@/database/types';
 import { getRelativeTime, getMonthDays } from '@/utils/date';
-import type { HistoryScreenProps } from '@/navigation/RootNavigator';
+import type { HistoryScreenProps, RootStackParamList, MainTabsParamList } from '@/navigation/RootNavigator';
+
+type HistoryNav = CompositeNavigationProp<
+  BottomTabNavigationProp<MainTabsParamList, 'History'>,
+  NativeStackNavigationProp<RootStackParamList>
+>;
 
 type ViewMode = 'list' | 'calendar';
 type FilterRange = '7' | '30' | 'all';
@@ -24,6 +32,7 @@ export default function HistoryScreen(_props: HistoryScreenProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<HistoryNav>();
 
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [records, setRecords] = useState<BodyRecord[]>([]);
@@ -69,8 +78,21 @@ export default function HistoryScreen(_props: HistoryScreenProps) {
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [filter, searchQuery, calYear, calMonth])
+    }, [filter, calYear, calMonth])
   );
+
+  // 搜索防抖：300ms 内连续击键不触发数据库查询
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => {
+      loadData();
+    }, searchQuery ? 300 : 0);
+    return () => {
+      if (searchTimer.current) clearTimeout(searchTimer.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
 
   const handleDelete = (id: number) => {
     Alert.alert(
@@ -108,12 +130,13 @@ export default function HistoryScreen(_props: HistoryScreenProps) {
       tags={item.id ? recordTags[item.id] : []}
       onPress={() => {
         Alert.alert(
-          '记录操作',
           getRelativeTime(item.record_date),
+          '体重 ' + (item.weight ?? '--') + 'kg · 体脂 ' + (item.body_fat ?? '--') + '%',
           [
-            { text: '编辑', onPress: () => {
-              Alert.alert('提示', '请前往记录页面编辑今日数据。如需编辑历史记录，请在记录页面修改日期。');
-            }},
+            {
+              text: '编辑',
+              onPress: () => navigation.navigate('Record', { initialDate: item.record_date }),
+            },
             { text: '删除', style: 'destructive', onPress: () => item.id && handleDelete(item.id) },
             { text: '取消', style: 'cancel' },
           ]
@@ -244,7 +267,10 @@ export default function HistoryScreen(_props: HistoryScreenProps) {
                   onPress={() => {
                     if (hasRecord) {
                       Alert.alert(day.date, '该日期已有记录', [
-                        { text: '查看详情', onPress: () => {} },
+                        {
+                          text: '查看/编辑详情',
+                          onPress: () => navigation.navigate('Record', { initialDate: day.date }),
+                        },
                         { text: '确定' },
                       ]);
                     }

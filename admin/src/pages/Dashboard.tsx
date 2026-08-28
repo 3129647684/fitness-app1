@@ -109,32 +109,32 @@ function Dashboard() {
           <>
             <KPICard
               title="总用户数"
-              value={formatNumber(overview?.total_users)}
+              value={formatNumber(overview?.totalUsers)}
               icon="👥"
             />
             <KPICard
               title="7 日活跃用户"
-              value={formatNumber(overview?.active_users_7d)}
+              value={formatNumber(overview?.activeUsers7d)}
               icon="🔥"
             />
             <KPICard
               title="总记录数"
-              value={formatNumber(overview?.total_records)}
+              value={formatNumber(overview?.totalRecords)}
               icon="📝"
             />
             <KPICard
-              title="30 日新增用户"
-              value={formatNumber(overview?.new_users_30d)}
-              icon="🆕"
+              title="30 日记录数"
+              value={formatNumber(overview?.recordsLast30d)}
+              icon="🗓️"
             />
             <KPICard
               title="平均体重 (kg)"
-              value={formatDecimal(overview?.avg_weight)}
+              value={formatDecimal(overview?.avgWeight)}
               icon="⚖️"
             />
             <KPICard
               title="平均 BMI"
-              value={formatDecimal(overview?.avg_bmi)}
+              value={formatDecimal(overview?.avgBMI)}
               icon="📏"
             />
           </>
@@ -165,21 +165,21 @@ function Dashboard() {
           ))
         ) : (
           <>
-            {metricsDist?.bmi_distribution && (
+            {metricsDist?.bmiDistribution && (
               <DistributionBarChart
-                data={metricsDist.bmi_distribution}
+                data={metricsDist.bmiDistribution}
                 title="BMI 分布"
               />
             )}
-            {metricsDist?.weight_distribution && (
+            {metricsDist?.weightDistribution && (
               <DistributionPieChart
-                data={metricsDist.weight_distribution}
+                data={metricsDist.weightDistribution}
                 title="体重分布"
               />
             )}
-            {metricsDist?.body_fat_distribution && (
+            {metricsDist?.bodyFatDistribution && (
               <DistributionPieChart
-                data={metricsDist.body_fat_distribution}
+                data={metricsDist.bodyFatDistribution}
                 title="体脂率分布"
               />
             )}

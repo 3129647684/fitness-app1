@@ -43,7 +43,7 @@ function TrendLineChart({ data, title, height = 300, color = GREEN_COLORS[1] }: 
             />
             <Line
               type="monotone"
-              dataKey="count"
+              dataKey="recordCount"
               stroke={color}
               strokeWidth={2.5}
               dot={false}

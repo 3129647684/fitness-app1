@@ -126,11 +126,11 @@ function Layout() {
                 fontWeight: 600,
                 fontSize: 14,
               }}>
-                {(admin?.nickname || admin?.username || 'A').charAt(0).toUpperCase()}
+                {(admin?.username || 'A').charAt(0).toUpperCase()}
               </div>
               <div>
                 <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>
-                  {admin?.nickname || admin?.username || '管理员'}
+                  {admin?.username || '管理员'}
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>管理员</div>
               </div>

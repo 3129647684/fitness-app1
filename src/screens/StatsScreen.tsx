@@ -121,6 +121,12 @@ export default function StatsScreen(_props: StatsScreenProps) {
   const sleepCount = allRecords.filter(r => r.sleep_duration !== null).length;
   const avgSleepValue = sleepCount > 0 ? Math.round((avgSleep / sleepCount) * 10) / 10 : null;
 
+  // 统计值格式化：整数指标（步数/心率/热量）不显示小数
+  const fmtStat = (v: number | null | undefined): string => {
+    if (v === null || v === undefined) return '--';
+    return Number.isInteger(v) ? String(v) : v.toFixed(1);
+  };
+
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
@@ -190,18 +196,18 @@ export default function StatsScreen(_props: StatsScreenProps) {
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>{metricInfo?.label}汇总</Text>
         <View style={styles.statGrid}>
-          <StatCard label="起始值" value={firstValue !== null ? firstValue.toFixed(1) : '--'} unit={metricInfo?.unit} icon="play-outline" />
-          <StatCard label="当前值" value={lastValue !== null ? lastValue.toFixed(1) : '--'} unit={metricInfo?.unit} icon="flag-outline" color={colors.primary} />
+          <StatCard label="起始值" value={fmtStat(firstValue)} unit={metricInfo?.unit} icon="play-outline" />
+          <StatCard label="当前值" value={fmtStat(lastValue)} unit={metricInfo?.unit} icon="flag-outline" color={colors.primary} />
           <StatCard
             label="总变化"
-            value={totalChange !== null ? (totalChange > 0 ? '+' : '') + totalChange.toFixed(1) : '--'}
+            value={totalChange !== null ? (totalChange > 0 ? '+' : '') + fmtStat(totalChange) : '--'}
             unit={metricInfo?.unit}
             icon="trending-up-outline"
             color={totalChange !== null && totalChange > 0 ? colors.danger : colors.success}
           />
-          <StatCard label="平均值" value={avgValue !== null ? avgValue.toFixed(1) : '--'} unit={metricInfo?.unit} icon="analytics-outline" />
-          <StatCard label="最低值" value={minValue !== null ? minValue.toFixed(1) : '--'} unit={metricInfo?.unit} icon="arrow-down-outline" color={colors.success} />
-          <StatCard label="最高值" value={maxValue !== null ? maxValue.toFixed(1) : '--'} unit={metricInfo?.unit} icon="arrow-up-outline" color={colors.danger} />
+          <StatCard label="平均值" value={fmtStat(avgValue)} unit={metricInfo?.unit} icon="analytics-outline" />
+          <StatCard label="最低值" value={fmtStat(minValue)} unit={metricInfo?.unit} icon="arrow-down-outline" color={colors.success} />
+          <StatCard label="最高值" value={fmtStat(maxValue)} unit={metricInfo?.unit} icon="arrow-up-outline" color={colors.danger} />
         </View>
       </View>
 

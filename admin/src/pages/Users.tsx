@@ -28,11 +28,11 @@ function Users() {
       const res = await client.get<UsersListResponse>('/admin/users', {
         params: {
           page,
-          page_size: PAGE_SIZE,
+          pageSize: PAGE_SIZE,
           search: search || undefined,
         },
       })
-      setData(res.data.data)
+      setData(res.data.list)
       setTotal(res.data.total)
     } catch {
       setError('加载失败，请刷新重试')
@@ -62,7 +62,7 @@ function Users() {
     }
     setDialogLoading(true)
     try {
-      await client.put(`/admin/users/${dialog.user.id}/reset_password`, { password: newPassword })
+      await client.post(`/admin/users/${dialog.user.id}/reset_password`, { password: newPassword })
       setSuccessMsg('密码已重置')
       setDialog({ type: 'reset', user: null })
       setNewPassword('')
@@ -154,9 +154,9 @@ function Users() {
                         <td style={tdStyle}>{u.id}</td>
                         <td style={tdStyle}>{u.username}</td>
                         <td style={tdStyle}>{u.nickname}</td>
-                        <td style={tdStyle}>{u.registered_at}</td>
-                        <td style={tdStyle}>{u.last_login || '—'}</td>
-                        <td style={tdStyle}>{u.records_count.toLocaleString()}</td>
+                        <td style={tdStyle}>{u.created_at}</td>
+                        <td style={tdStyle}>{u.last_login_at || '—'}</td>
+                        <td style={tdStyle}>{u.record_count.toLocaleString()}</td>
                         <td style={{ ...tdStyle, textAlign: 'right', paddingRight: 20 }}>
                           <div style={{ display: 'inline-flex', gap: 4 }}>
                             <button className="btn btn-link btn-sm" onClick={() => navigate(`/dashboard/users/${u.id}`)}>详情</button>

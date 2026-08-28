@@ -1,6 +1,7 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Switch, TextInput, Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -43,6 +44,8 @@ export default function SettingsScreen(_props: SettingsScreenProps) {
 
   const [goalType, setGoalType] = useState<'weight' | 'waist' | 'body_fat'>('weight');
   const [goalValue, setGoalValue] = useState('');
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [savingGoal, setSavingGoal] = useState(false);
 
   const loadData = async () => {
     const p = await getUserProfile();
@@ -65,33 +68,49 @@ export default function SettingsScreen(_props: SettingsScreenProps) {
   }, []);
 
   const handleSaveProfile = async () => {
-    await updateUserProfile({
-      height: height ? parseFloat(height) : null,
-      weight: weight ? parseFloat(weight) : null,
-      age: age ? parseInt(age, 10) : null,
-      gender,
-      target_weight: targetWeight ? parseFloat(targetWeight) : null,
-      target_waist: targetWaist ? parseFloat(targetWaist) : null,
-    });
-    setEditProfile(false);
-    loadData();
-    Alert.alert('成功', '个人信息已保存');
+    if (savingProfile) return;
+    setSavingProfile(true);
+    try {
+      await updateUserProfile({
+        height: height ? parseFloat(height) : null,
+        weight: weight ? parseFloat(weight) : null,
+        age: age ? parseInt(age, 10) : null,
+        gender,
+        target_weight: targetWeight ? parseFloat(targetWeight) : null,
+        target_waist: targetWaist ? parseFloat(targetWaist) : null,
+      });
+      setEditProfile(false);
+      loadData();
+      Alert.alert('成功', '个人信息已保存');
+    } catch (e) {
+      Alert.alert('保存失败', (e as Error).message);
+    } finally {
+      setSavingProfile(false);
+    }
   };
 
   const handleSaveGoal = async () => {
+    if (savingGoal) return;
     if (!goalValue) {
       Alert.alert('提示', '请输入目标值');
       return;
     }
-    await saveGoal({
-      goal_type: goalType,
-      target_value: parseFloat(goalValue),
-      start_date: getTodayString(),
-    });
-    setEditGoal(false);
-    setGoalValue('');
-    loadData();
-    Alert.alert('成功', '目标已设定');
+    setSavingGoal(true);
+    try {
+      await saveGoal({
+        goal_type: goalType,
+        target_value: parseFloat(goalValue),
+        start_date: getTodayString(),
+      });
+      setEditGoal(false);
+      setGoalValue('');
+      loadData();
+      Alert.alert('成功', '目标已设定');
+    } catch (e) {
+      Alert.alert('保存失败', (e as Error).message);
+    } finally {
+      setSavingGoal(false);
+    }
   };
 
   const handleExport = async () => {
@@ -449,11 +468,15 @@ export default function SettingsScreen(_props: SettingsScreenProps) {
               </View>
             </View>
             <View style={styles.modalButtons}>
-              <TouchableOpacity style={[styles.modalBtn, { borderColor: colors.border }]} onPress={() => setEditProfile(false)} activeOpacity={0.7}>
-                <Text style={{ color: colors.textSecondary }}>取消</Text>
+              <TouchableOpacity style={[styles.modalBtn, { borderColor: colors.border }]} onPress={() => setEditProfile(false)} activeOpacity={0.7} disabled={savingProfile}>
+                <Text style={{ color: savingProfile ? colors.textTertiary : colors.textSecondary }}>取消</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.modalBtn, { backgroundColor: colors.primary }]} onPress={handleSaveProfile} activeOpacity={0.85}>
-                <Text style={{ color: '#FFF', fontWeight: '600' }}>保存</Text>
+              <TouchableOpacity style={[styles.modalBtn, { backgroundColor: colors.primary, opacity: savingProfile ? 0.7 : 1 }]} onPress={handleSaveProfile} activeOpacity={0.85} disabled={savingProfile}>
+                {savingProfile ? (
+                  <ActivityIndicator color="#FFF" size="small" />
+                ) : (
+                  <Text style={{ color: '#FFF', fontWeight: '600' }}>保存</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -510,11 +533,15 @@ export default function SettingsScreen(_props: SettingsScreenProps) {
               )}
             </View>
             <View style={styles.modalButtons}>
-              <TouchableOpacity style={[styles.modalBtn, { borderColor: colors.border }]} onPress={() => setEditGoal(false)} activeOpacity={0.7}>
-                <Text style={{ color: colors.textSecondary }}>取消</Text>
+              <TouchableOpacity style={[styles.modalBtn, { borderColor: colors.border }]} onPress={() => setEditGoal(false)} activeOpacity={0.7} disabled={savingGoal}>
+                <Text style={{ color: savingGoal ? colors.textTertiary : colors.textSecondary }}>取消</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.modalBtn, { backgroundColor: colors.primary }]} onPress={handleSaveGoal} activeOpacity={0.85}>
-                <Text style={{ color: '#FFF', fontWeight: '600' }}>保存</Text>
+              <TouchableOpacity style={[styles.modalBtn, { backgroundColor: colors.primary, opacity: savingGoal ? 0.7 : 1 }]} onPress={handleSaveGoal} activeOpacity={0.85} disabled={savingGoal}>
+                {savingGoal ? (
+                  <ActivityIndicator color="#FFF" size="small" />
+                ) : (
+                  <Text style={{ color: '#FFF', fontWeight: '600' }}>保存</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>

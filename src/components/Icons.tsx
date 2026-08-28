@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Platform } from 'react-native';
 import { Colors } from '@/constants/theme';
 
@@ -94,7 +94,8 @@ type IconName =
   | 'play-outline'
   | 'arrow-down-outline'
   | 'arrow-up-outline'
-  | 'calendar-outline';
+  | 'calendar-outline'
+  | 'chatbubble-outline';
 
 export type { IconName };
 

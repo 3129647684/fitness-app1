@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import client from '@/api/client'
 import KPICard from '@/components/KPICard'
-import TrendLineChart from '@/components/TrendLineChart'
 import type { UserDetailData } from '@/types'
 
 function UserDetail() {
@@ -91,10 +90,8 @@ function UserDetail() {
                   @{user.username} · ID {user.id}
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, fontSize: 13, color: 'var(--text-muted)' }}>
-                  <span>性别：{user.gender || '—'}</span>
-                  <span>身高：{user.height ? user.height + ' cm' : '—'}</span>
-                  <span>注册时间：{user.registered_at}</span>
-                  <span>最近登录：{user.last_login || '—'}</span>
+                  <span>注册时间：{user.created_at}</span>
+                  <span>最近登录：{user.last_login_at || '—'}</span>
                 </div>
               </div>
               <Link to="/dashboard/users" className="btn btn-secondary btn-sm">
@@ -109,21 +106,19 @@ function UserDetail() {
             gap: 16,
             marginBottom: 20,
           }}>
-            <KPICard title="最新体重 (kg)" value={fmt(user.latest_weight)} icon="⚖️" />
-            <KPICard title="最新 BMI" value={fmt(user.latest_bmi)} icon="📏" />
-            <KPICard title="最新体脂率 (%)" value={fmt(user.latest_body_fat)} icon="💧" />
-            <KPICard title="肌肉量 (kg)" value={fmt(user.latest_muscle_mass)} icon="💪" />
-            <KPICard title="累计记录数" value={fmtInt(user.records_count)} icon="📝" />
-            <KPICard title="训练总次数" value={fmtInt(user.total_workouts)} icon="🏋️" />
-            <KPICard title="日均卡路里" value={fmtInt(user.avg_calories_per_day)} icon="🔥" />
-            <KPICard title="累计记录天数" value={fmtInt(user.weight_trend_30d?.length || 0)} icon="📅" />
+            <KPICard title="最新体重 (kg)" value={fmt(user.latestWeight)} icon="⚖️" />
+            <KPICard title="最新 BMI" value={fmt(user.latestBMI)} icon="📏" />
+            <KPICard title="最新体脂率 (%)" value={fmt(user.latestBodyFat)} icon="💧" />
+            <KPICard title="肌肉量 (kg)" value={fmt(user.latestMuscleMass)} icon="💪" />
+            <KPICard title="累计记录数" value={fmtInt(user.totalRecords)} icon="📝" />
+            <KPICard
+              title="记录区间"
+              value={user.firstRecordDate && user.lastRecordDate ? `${user.firstRecordDate} ~ ${user.lastRecordDate}` : '—'}
+              icon="📅"
+            />
+            <KPICard title="最新腰围 (cm)" value={fmt(user.waist)} icon="📐" />
+            <KPICard title="最新睡眠时长 (h)" value={fmt(user.sleepHours)} icon="🌙" />
           </div>
-
-          <TrendLineChart
-            data={user.weight_trend_30d || []}
-            title="最近 30 天体重趋势 (kg)"
-            height={320}
-          />
         </>
       )}
     </div>

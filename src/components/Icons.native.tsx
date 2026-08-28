@@ -92,7 +92,8 @@ export type IconName =
   | 'play-outline'
   | 'arrow-down-outline'
   | 'arrow-up-outline'
-  | 'calendar-outline';
+  | 'calendar-outline'
+  | 'chatbubble-outline';
 
 interface IconProps {
   name: IconName;

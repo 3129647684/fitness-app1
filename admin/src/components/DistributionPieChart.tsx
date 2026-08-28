@@ -17,7 +17,7 @@ function DistributionPieChart({
   title,
   height = 240,
   dataKey = 'count',
-  nameKey = 'range',
+  nameKey = 'bucket',
 }: DistributionPieChartProps) {
   return (
     <div className="card" style={{ marginBottom: 0 }}>

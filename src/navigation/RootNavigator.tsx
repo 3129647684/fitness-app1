@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Platform as RNPlatform } from 'react-native';
 import { createNativeStackNavigator, NativeStackScreenProps } from '@react-navigation/native-stack';
 import { createBottomTabNavigator, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,7 +26,7 @@ export type RootStackParamList = {
 
 export type MainTabsParamList = {
   Index: undefined;
-  Record: undefined;
+  Record: { initialDate?: string } | undefined;
   History: undefined;
   Stats: undefined;
   Settings: undefined;
@@ -71,7 +71,13 @@ const MainTabsNavigator: React.FC = () => {
   }
 
   const iconSize = tokens.isCompact ? 20 : 22;
-  const tabBarHeight = (tokens.isCompact ? 50 : 58) + (insets.bottom || 8);
+  // 安全区兜底：Web 端 Mobile Safari 常因 safe-area-inset-bottom 未被正确读取，
+  // 导致 fallback 到 8 不足，底部标签文字被切。此处统一提升最小值并同步增加 TabBar 高度
+  const safeBottom = Math.max(
+    insets.bottom || 0,
+    RNPlatform.OS === 'web' ? 20 : 12,
+  );
+  const tabBarHeight = (tokens.isCompact ? 50 : 58) + safeBottom;
   const labelFontSize = tokens.isCompact ? 10 : FontSize.xs;
 
   return (
@@ -85,7 +91,7 @@ const MainTabsNavigator: React.FC = () => {
           borderTopColor: colors.border,
           borderTopWidth: 1,
           height: tabBarHeight,
-          paddingBottom: insets.bottom || 8,
+          paddingBottom: safeBottom,
           paddingTop: tokens.isCompact ? 4 : 6,
           elevation: 0,
           shadowOpacity: 0,

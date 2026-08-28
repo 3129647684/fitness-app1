@@ -155,7 +155,9 @@ module.exports = {
     hot: true,
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin',
-      'Cross-Origin-Embedder-Policy': 'require-corp',
+      // credentialless 同样提供跨源隔离（OPFS 可用），但允许无 CORP 头的第三方脚本
+      // （如 TRAE 预览器注入的 previewer-tools）加载，避免 ERR_BLOCKED_BY_RESPONSE
+      'Cross-Origin-Embedder-Policy': 'credentialless',
     },
     static: {
       directory: path.resolve(__dirname, '..', 'assets'),

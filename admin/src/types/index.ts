@@ -1,7 +1,7 @@
 export interface AdminInfo {
   id: number | string
   username: string
-  nickname?: string
+  role?: string
 }
 
 export interface AuthResponse {
@@ -9,68 +9,76 @@ export interface AuthResponse {
   admin: AdminInfo
 }
 
+// 与后端 /api/admin/stats/overview 响应保持一致（驼峰命名）
 export interface OverviewStats {
-  total_users: number
-  active_users_7d: number
-  total_records: number
-  new_users_30d: number
-  avg_weight: number
-  avg_bmi: number
+  totalUsers: number
+  activeUsers7d: number
+  totalRecords: number
+  recordsLast30d: number
+  avgWeight: number | null
+  avgBMI: number | null
+  avgBodyFat: number | null
+  avgMuscleMass: number | null
 }
 
+// 与后端 /api/admin/stats/records_trend 响应保持一致
 export interface TrendPoint {
   date: string
-  count: number
+  recordCount: number
+  uniqueUsers: number
 }
 
+// 与后端分布接口的元素结构保持一致
 export interface DistributionItem {
-  range: string
+  bucket: string
   count: number
 }
 
 export interface CoreMetricsDistribution {
-  bmi_distribution: DistributionItem[]
-  weight_distribution: DistributionItem[]
-  body_fat_distribution: DistributionItem[]
+  bmiDistribution: DistributionItem[]
+  weightDistribution: DistributionItem[]
+  bodyFatDistribution: DistributionItem[]
 }
 
+// 与后端 /api/admin/stats/tags_top 响应保持一致
 export interface TopTag {
-  tag: string
+  tag_name: string
   count: number
 }
 
+// 与后端 /api/admin/users 列表项保持一致
 export interface UserItem {
   id: number | string
   username: string
   nickname: string
-  registered_at: string
-  last_login: string | null
-  records_count: number
+  created_at: string
+  last_login_at: string | null
+  record_count: number
 }
 
+// 与后端 /api/admin/users/:id 详情响应保持一致
 export interface UserDetailData {
   id: number | string
   username: string
   nickname: string
-  registered_at: string
-  last_login: string | null
-  records_count: number
-  latest_weight: number | null
-  latest_bmi: number | null
-  latest_body_fat: number | null
-  latest_muscle_mass: number | null
-  total_workouts: number
-  avg_calories_per_day: number
-  height: number | null
-  gender: string | null
-  weight_trend_30d: TrendPoint[]
+  created_at: string
+  last_login_at: string | null
+  totalRecords: number
+  firstRecordDate: string | null
+  lastRecordDate: string | null
+  latestWeight: number | null
+  latestBMI: number | null
+  latestBodyFat: number | null
+  latestMuscleMass: number | null
+  waist: number | null
+  sleepHours: number | null
 }
 
 export interface UsersListResponse {
-  data: UserItem[]
+  list: UserItem[]
   total: number
   page: number
-  page_size: number
+  pageSize: number
 }
 
 export interface LoginCredentials {

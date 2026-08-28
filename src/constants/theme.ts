@@ -1,4 +1,7 @@
-﻿export const Colors = {
+import { Platform } from 'react-native';
+import type { ChartMetric } from '@/database/types';
+
+export const Colors = {
   brand: {
     primary: '#2D6A4F',
     primarySoft: '#40916C',
@@ -58,11 +61,24 @@ export type ThemeColors = typeof Colors.light;
 export const Spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 28, xxxl: 40 };
 export const BorderRadius = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, pill: 9999, full: 9999 };
 export const FontSize = { xs: 11, sm: 13, md: 15, lg: 18, xl: 22, xxl: 28, xxxl: 36 };
-export const Shadows = {
-  sm: { shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
-  md: { shadowColor: '#000', shadowOpacity: 0.10, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 4 },
-  lg: { shadowColor: '#000', shadowOpacity: 0.14, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 8 },
-};
+
+// RN Web 0.21 开始废弃 shadowColor/shadowOpacity/shadowRadius/shadowOffset，
+// 仅接受标准 CSS boxShadow 字符串，否则会产生控制台告警。
+// 使用 Platform.select 让两端都拿到自己想要的格式。
+export const Shadows = Platform.select({
+  web: {
+    sm: { boxShadow: '0 2px 4px rgba(0, 0, 0, 0.06)' },
+    md: { boxShadow: '0 3px 8px rgba(0, 0, 0, 0.10)' },
+    lg: { boxShadow: '0 6px 16px rgba(0, 0, 0, 0.14)' },
+  },
+  default: {
+    sm: { shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+    md: { shadowColor: '#000', shadowOpacity: 0.10, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 4 },
+    lg: { shadowColor: '#000', shadowOpacity: 0.14, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 8 },
+  },
+}) as typeof import('react-native').Platform extends { OS: infer _T }
+  ? { sm: Record<string, any>; md: Record<string, any>; lg: Record<string, any> }
+  : never;
 
 export const DefaultTags = ['熬夜', '运动日', '饮食放纵', '经期', '旅行', '压力大', '感冒', '恢复期', '增肌期', '减脂期'] as const;
 
@@ -82,13 +98,18 @@ export const MoodOptions = [
   { value: 'anxious', label: '焦虑' },
 ] as const;
 
-export const MetricLabels: Record<string, { label: string; unit: string; icon: 'scale-outline' | 'body-outline' | 'analytics-outline' | 'walk-outline' | 'water-outline' | 'bed-outline' | 'pulse-outline' | 'resize-outline' }> = {
+export const MetricLabels: Record<ChartMetric, { label: string; unit: string; icon: string }> = {
   weight: { label: '体重', unit: 'kg', icon: 'scale-outline' },
   bmi: { label: 'BMI', unit: '', icon: 'body-outline' },
-  bodyFat: { label: '体脂率', unit: '%', icon: 'analytics-outline' },
-  muscleMass: { label: '肌肉量', unit: 'kg', icon: 'walk-outline' },
+  body_fat: { label: '体脂率', unit: '%', icon: 'analytics-outline' },
   waist: { label: '腰围', unit: 'cm', icon: 'resize-outline' },
-  water: { label: '饮水量', unit: 'ml', icon: 'water-outline' },
-  sleepHours: { label: '睡眠', unit: 'h', icon: 'bed-outline' },
-  heartRate: { label: '心率', unit: 'bpm', icon: 'pulse-outline' },
+  sleep_duration: { label: '睡眠时长', unit: 'h', icon: 'moon-outline' },
+  chest: { label: '胸围', unit: 'cm', icon: 'resize-outline' },
+  hip: { label: '臀围', unit: 'cm', icon: 'body-outline' },
+  thigh: { label: '大腿围', unit: 'cm', icon: 'walk-outline' },
+  neck: { label: '颈围', unit: 'cm', icon: 'resize-outline' },
+  heart_rate: { label: '心率', unit: 'bpm', icon: 'pulse-outline' },
+  steps: { label: '步数', unit: '步', icon: 'walk-outline' },
+  food_cal: { label: '热量摄入', unit: 'kcal', icon: 'restaurant-outline' },
+  sport_cal: { label: '运动消耗', unit: 'kcal', icon: 'flame-outline' },
 };

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, Modal, ScrollView,
+  Platform as RNPlatform,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -101,30 +102,358 @@ function equipKey(eq?: string): string {
 }
 
 
-const musclePaths: Record<string, string[]> = {
-  '胸': ['M9 21c2-8 28-8 30 0v4c0 4-3 7-7 7H16c-4 0-7-3-7-7v-4z', 'M24 20v12'],
-  '背': ['M9 15c5-2 10-3 15-3s10 1 15 3', 'M9 15v9c0 6 5 9 15 9s15-3 15-9v-9', 'M16 13l3 16 5-14 5 14 3-16'],
-  '腿': ['M24 8c-4 6-5 16-5 25 0 3 2 5 5 5s5-2 5-5c0-9-1-19-5-25z', 'M20 22h9'],
-  '肩': ['M13 15c1-5 5-8 11-8 7 0 12 4 13 9l-3 7', 'M13 15c-2 4-3 9-3 14', 'M23 7c4 3 5 7 3 11', 'M24 23c3 0 6 2 6 5'],
-  '三头': ['M12 13c9-4 19-2 23 4 1 2 1 5-1 6l-2 1-7-6', 'M12 13c-1 3-2 7-2 11', 'M25 16l3 6-7 5-3-3', 'M20 22v10', 'M20 32h6'],
-  '二头': ['M14 12c2-3 6-4 9-2 5 3 7 9 6 15l-2 3', 'M14 12c-2 3-3 7-3 12', 'M31 13c-3-2-7-1-9 1-2 2-3 5-2 7l1 4 5 4 3 6 3-1', 'M19 16c2 1 4 3 4 6'],
-  '斜方肌': ['M17 8c-2 2-2 5-1 6', 'M31 8c2 2 2 5 1 6', 'M16 12h16', 'M16 12c-3 6-6 12-9 16', 'M32 12c3 6 6 12 9 16', 'M24 12v4', 'M7 24h8', 'M33 24h8'],
-  '前臂': ['M16 12c-5 4-7 10-7 16 0 4 2 6 4 6', 'M24 12l-5 20c1 3 3 4 5 4', 'M24 12c5 4 7 10 7 16 0 4-2 6-4 6', 'M33 10v8'],
-  '小腿': ['M24 6c2 5 3 10 3 16 0 9-2 15-4 20c-2-4-3-10-3-17 0-5 1-9 3-15z', 'M24 6c2 5 3 10 3 16', 'M20 22h8'],
-  '臀部': ['M13 24c0-6 4-11 11-11s11 5 11 11', 'M13 24v3c0 5 3 9 11 9s11-4 11-9v-3', 'M13 27h8', 'M35 27h8'],
-  '腹部': ['M14 10c3-3 6-6 10-6s7 3 10 6', 'M14 10c-2 5-3 10-3 16 0 7 4 12 13 12s13-5 13-12c0-6-1-11-3-16', 'M16 18h16', 'M16 26h16', 'M10 16l1 3', 'M10 22l1 3', 'M38 16l-1 3', 'M38 22l-1 3'],
-  '拉伸': ['M8 40c6-8 12-20 16-30', 'M24 12l6 4 6-6', 'M30 16l-2 10c-1 6-6 12-6 18', 'M22 24l6 2', 'M34 12l3 3'],
-  '有氧': ['M24 36C12 26 8 18 16 13c3-2 6 1 8 4 3-6 18-4 16 10l-4 5'],
-  '全身': ['M24 6c2 3 3 6 3 10 0 3-1 5-3 6', 'M24 6c-2 3-3 6-3 10 0 3 1 5 3 6', 'M24 22v4', 'M14 20c-1 6-1 12 0 18', 'M34 20c1 6 1 12 0 18', 'M18 13l1 8', 'M30 13l-1 8', 'M16 40c2-2 5-3 8-3s6 1 8 3'],
+interface MusclePathSet {
+  outline: string[];   // 人体轮廓（底色）
+  highlight: string[]; // 目标肌肉区域（高亮色）
+}
+
+// 设计图风格：正面/背面解剖轮廓 + 目标肌肉高亮
+// 每个 SVG 统一 viewBox="0 0 100 110"，高度略大于宽度便于呈现人体
+const muscleArt: Record<string, MusclePathSet> = {
+  '胸': {
+    // 正面躯干：胸大肌高亮
+    outline: [
+      // 头+颈
+      'M50 6c-5 0-9 4-9 9s4 9 9 9 9-4 9-9-4-9-9-9z',
+      // 躯干
+      'M30 24c-4 2-6 7-6 13v22c0 10 6 18 16 22',
+      'M70 24c4 2 6 7 6 13v22c0 10-6 18-16 22',
+      'M30 59c0 12 8 22 20 22s20-10 20-22',
+      // 手臂外侧
+      'M24 30c-6 4-8 10-8 20s4 16 8 22l6-4',
+      'M76 30c6 4 8 10 8 20s-4 16-8 22l-6-4',
+      'M30 32l-14 10c-2 2-4 6-2 10l4 8 10-6',
+      'M70 32l14 10c2 2 4 6 2 10l-4 8-10-6',
+    ],
+    highlight: [
+      // 左胸
+      'M34 30c-2 6-2 12 4 18 4 4 10 6 12 2 2-4-2-14-8-18-4-3-6-3-8-2z',
+      // 右胸
+      'M66 30c2 6 2 12-4 18-4 4-10 6-12 2-2-4 2-14 8-18 4-3 6-3 8-2z',
+      // 胸中线
+      'M50 34v18',
+    ],
+  },
+  '背': {
+    // 背面躯干：背阔肌+斜方肌中下部
+    outline: [
+      'M50 6c-5 0-9 4-9 9s4 9 9 9 9-4 9-9-4-9-9-9z',
+      'M30 24c-4 2-6 7-6 13v22c0 10 6 18 16 22',
+      'M70 24c4 2 6 7 6 13v22c0 10-6 18-16 22',
+      'M30 59c0 12 8 22 20 22s20-10 20-22',
+      'M24 30c-6 4-8 10-8 20s4 16 8 22l6-4',
+      'M76 30c6 4 8 10 8 20s-4 16-8 22l-6-4',
+    ],
+    highlight: [
+      // 斜方肌下部（三角区）
+      'M38 24l12 10 12-10-6 10c-3 5-12 5-18 0l-6-10z',
+      // 左背阔
+      'M30 36c-2 10 4 20 12 26 4 2 6-2 6-6 0-6-6-12-12-16s-6-5-6-4z',
+      // 右背阔
+      'M70 36c2 10-4 20-12 26-4 2-6-2-6-6 0-6 6-12 12-16s6-5 6-4z',
+      // 脊柱
+      'M50 28v36',
+    ],
+  },
+  '腿': {
+    // 正面腿：股四头肌高亮
+    outline: [
+      'M30 22h40l-4 12c-4 8-6 22-6 34 0 10 4 18 8 22l-16 4-16-4c4-4 8-12 8-22 0-12-2-26-6-34l-4-12z',
+      'M42 10c-4 0-8 4-8 10v4h32v-4c0-6-4-10-8-10h-16z',
+    ],
+    highlight: [
+      // 左股四头
+      'M32 40c0 12 6 28 14 34 2-4 2-14 2-26 0-10-8-10-16-8z',
+      // 右股四头
+      'M68 40c0 12-6 28-14 34-2-4-2-14-2-26 0-10 8-10 16-8z',
+      // 髌骨
+      'M42 74h16v8H42z',
+    ],
+  },
+  '肩': {
+    // 正面：三角肌高亮
+    outline: [
+      'M50 4c-5 0-9 4-9 9s4 9 9 9 9-4 9-9-4-9-9-9z',
+      'M32 24c-4 2-6 8-6 14v18c0 8 4 14 10 18',
+      'M68 24c4 2 6 8 6 14v18c0 8-4 14-10 18',
+      'M36 64l-6 32',
+      'M64 64l6 32',
+      'M22 32c-6 6-8 14-6 24l6 8 6-14',
+      'M78 32c6 6 8 14 6 24l-6 8-6-14',
+    ],
+    highlight: [
+      // 左三角肌
+      'M30 22c-4 6 0 18 10 20 6-2 6-12 2-18-2-2-8-3-12-2z',
+      // 右三角肌
+      'M70 22c4 6 0 18-10 20-6-2-6-12-2-18 2-2 8-3 12-2z',
+      // 肩线
+      'M34 22c4-6 26-6 32 0',
+    ],
+  },
+  '三头': {
+    // 手臂外侧视图：肱三头肌长头+外侧头
+    outline: [
+      // 躯干小图
+      'M44 6c-3 0-5 2-5 5s2 5 5 5 5-2 5-5-2-5-5-5z',
+      'M34 16h20l-2 10 8 4',
+      // 左臂主图（大）
+      'M50 32c-12 2-22 10-24 24-2 12 2 24 10 32s20 12 32 10c10-2 18-10 22-20 4-10 2-24-6-34-6-8-18-12-30-10l-4-2z',
+      // 前臂连接
+      'M62 86c8 2 16 8 22 18l-10 4',
+    ],
+    highlight: [
+      // 长头
+      'M42 48c-4 12-2 26 8 32 4-2 4-12 0-20-2-4-4-8-8-12z',
+      // 外侧头
+      'M56 42c8 4 14 14 16 28-2 4-8 4-12-2-6-8-6-18-4-26z',
+      // 内侧头（肘上）
+      'M54 68l10 14c-4 2-10 0-12-6l2-8z',
+    ],
+  },
+  '二头': {
+    // 手臂前视图：肱二头肌长短头
+    outline: [
+      'M44 6c-3 0-5 2-5 5s2 5 5 5 5-2 5-5-2-5-5-5z',
+      'M34 16h20l-2 10-8 4',
+      // 左臂主图
+      'M50 30c-12 2-22 10-24 24-2 14 4 28 14 36s24 10 36 4c10-6 16-18 16-32 0-14-8-26-22-30-10-2-16-2-20-2z',
+      'M80 70c8 8 12 20 10 34l-12-2',
+    ],
+    highlight: [
+      // 二头肌长头（隆起）
+      'M40 48c-2 10 2 22 12 24 6-2 6-12 2-20-2-6-8-8-14-4z',
+      // 二头肌短头
+      'M58 44c8 6 12 18 10 30-4 2-10-2-10-12 0-8-2-14 0-18z',
+      // 肌腱（下）
+      'M52 72h12l-4 12h-4l-4-12z',
+    ],
+  },
+  '斜方肌': {
+    // 背面颈肩区：斜方肌（上中下束）高亮
+    outline: [
+      'M50 4c-6 0-10 5-10 11s4 11 10 11 10-5 10-11-4-11-10-11z',
+      'M28 24c-4 2-6 8-6 14v20c0 8 4 14 10 18l-8 26',
+      'M72 24c4 2 6 8 6 14v20c0 8-4 14-10 18l8 26',
+      'M22 32c-6 6-8 14-6 24l6 8 6-14',
+      'M78 32c6 6 8 14 6 24l-6 8-6-14',
+    ],
+    highlight: [
+      // 上束（耸肩区）
+      'M30 20c4 4 14 4 20 0 6 4 16 4 20 0-2 6-8 12-20 14-12-2-18-8-20-14z',
+      // 中束
+      'M36 32l14 10 14-10-4 12c-3 3-16 3-20 0l-4-12z',
+      // 下束（倒三角尖）
+      'M42 50l8 24 8-24-4-4-4 8-4-8-4 4z',
+    ],
+  },
+  '前臂': {
+    // 前臂+手腕肌群
+    outline: [
+      'M44 4c-3 0-5 2-5 5s2 5 5 5 5-2 5-5-2-5-5-5z',
+      'M34 14h20v10l-8 4',
+      // 上臂
+      'M38 28l18 8-2 18',
+      // 前臂主图
+      'M44 50c-14 4-22 18-20 34 2 12 12 22 26 22s26-8 28-22c2-14-6-28-20-32l-14-2z',
+      'M78 78c8 10 10 26 4 38l-14-8',
+    ],
+    highlight: [
+      // 桡侧肌群（拇指侧）
+      'M32 60c-2 10 2 22 12 26 4-2 4-12 2-18-2-6-8-10-14-8z',
+      // 尺侧肌群（小指侧）
+      'M68 56c10 4 14 18 12 32-4 2-10-2-10-12 0-8-4-16-2-20z',
+      // 腕伸肌（横纹）
+      'M40 80h26',
+      'M42 86h22',
+    ],
+  },
+  '小腿': {
+    // 小腿后侧：腓肠肌+比目鱼肌
+    outline: [
+      // 大腿下半
+      'M32 6h36l-4 20v10',
+      // 膝
+      'M38 36h24',
+      // 小腿主体（后侧）
+      'M36 38c-4 12 0 36 10 52 2-4 2-14 2-22 0-10 6-10 16-6 8 4 10 18 8 28 8-12 10-32 8-44-2-12-12-22-28-22s-26 8-26 14z',
+      // 脚踝+足跟
+      'M44 90h12l-2 12h-8l-2-12z',
+    ],
+    highlight: [
+      // 腓肠肌内侧头
+      'M38 46c-2 14 4 30 14 34 4-4 0-18-2-24-2-8-6-12-12-10z',
+      // 腓肠肌外侧头
+      'M62 46c10-2 18 2 20 18 2 12-4 22-14 22-2-8-6-20-6-28 0-6 2-10 0-12z',
+      // 中线（跟腱延伸）
+      'M50 48v40',
+      // 比目鱼肌下沿
+      'M42 80h16',
+    ],
+  },
+  '臀部': {
+    // 后视图：臀大肌+臀中肌（设计图绿色填充臀部区域）
+    outline: [
+      // 上半身小
+      'M50 4c-6 0-10 5-10 11s4 11 10 11 10-5 10-11-4-11-10-11z',
+      'M30 26c-4 2-6 8-6 14v14c0 6 4 10 10 14',
+      'M70 26c4 2 6 8 6 14v14c0 6-4 10-10 14',
+      // 腰部
+      'M38 64h24',
+      // 臀部区域
+      'M30 66c0-8 8-14 20-14s20 6 20 14v8c0 14-8 26-20 26s-20-12-20-26v-8z',
+      // 大腿上
+      'M32 94l-2 12h14l-2-12',
+      'M68 94l2 12H56l2-12',
+    ],
+    highlight: [
+      // 左臀大肌（椭圆）
+      'M32 72c0-10 8-16 18-14 2 6-2 16-10 20-6 2-8-2-8-6z',
+      // 右臀大肌
+      'M68 72c0-10-8-16-18-14-2 6 2 16 10 20 6 2 8-2 8-6z',
+      // 臀中肌上沿（髂嵴）
+      'M34 66c6-6 26-6 32 0',
+      // 臀沟
+      'M50 74v24',
+    ],
+  },
+  '腹部': {
+    // 正面：腹直肌+腹外斜肌
+    outline: [
+      'M50 6c-5 0-9 4-9 9s4 9 9 9 9-4 9-9-4-9-9-9z',
+      'M32 24c-4 2-6 8-6 14v16c0 8 4 14 10 18v20c0 14 6 26 20 26s20-12 20-26V72c6-4 10-10 10-18V38c0-6-2-12-6-14',
+      'M22 32c-6 6-8 14-6 24l6 8 6-14',
+      'M78 32c6 6 8 14 6 24l-6 8-6-14',
+    ],
+    highlight: [
+      // 腹直肌鞘轮廓
+      'M38 36c-2 16 2 36 12 36s14-20 12-36c-4-4-20-4-24 0z',
+      // 腹白线
+      'M50 38v32',
+      // 腱划（4行腹肌）
+      'M40 46h20',
+      'M40 56h20',
+      'M40 66h20',
+      // 腹外斜肌（两侧 V 线）
+      'M38 42c-6 10-8 24-2 36l8-10c-2-8 0-18 2-22l-8-4z',
+      'M62 42c6 10 8 24 2 36l-8-10c2-8 0-18-2-22l8-4z',
+    ],
+  },
+  '拉伸': {
+    // 坐姿体前屈（拉伸姿势）
+    outline: [
+      // 头
+      'M30 14c-4 0-7 3-7 7s3 7 7 7 7-3 7-7-3-7-7-7z',
+      // 躯干前倾
+      'M30 28c-6 4-10 10-10 18l26 6 6-6',
+      // 伸直的双腿
+      'M14 54h60l-8 14c-4 6-12 6-18 0l-26-12c-4-2-8-4-8-8z',
+      // 手臂伸向脚
+      'M22 46l-4 18c-2 2 2 6 6 4l8-14',
+      'M42 48l14 14c2 2 6-2 4-6l-12-12',
+    ],
+    highlight: [
+      // 被拉伸的腿后侧（筋络线）
+      'M20 58c10 0 34 2 48-2',
+      'M22 62c14 4 36 4 50 0',
+      // 腰部拉伸区
+      'M18 38c6-4 20-6 30-4',
+    ],
+  },
+  '有氧': {
+    // 跑步人形+心跳线
+    outline: [
+      // 头
+      'M58 10c-4 0-7 3-7 7s3 7 7 7 7-3 7-7-3-7-7-7z',
+      // 跑步身体前倾
+      'M50 24l10 8 6 14',
+      // 右臂前摆
+      'M56 28l16-6 4 6',
+      // 左臂后摆
+      'M54 32l-14 8-4-2',
+      // 右腿前迈
+      'M60 46l14 10-4 10',
+      // 左腿后蹬
+      'M58 46l-18 16-2 8',
+    ],
+    highlight: [
+      // 心形（左上）
+      'M18 18c-4-4-10-2-10 4 0 6 10 12 10 12s10-6 10-12c0-6-6-8-10-4z',
+      // 心率折线
+      'M6 40l6 0 4-10 4 20 4-14 4 8 8-4',
+      // 速度线
+      'M12 78h20',
+      'M18 88h14',
+    ],
+  },
+  '全身': {
+    // 标准整身正面解剖轮廓
+    outline: [
+      // 头
+      'M50 6c-6 0-10 5-10 11s4 11 10 11 10-5 10-11-4-11-10-11z',
+      // 躯干
+      'M32 28c-4 2-6 8-6 14v18c0 8 4 14 10 18v20c0 14 6 26 20 26s20-12 20-26V78c6-4 10-10 10-18V42c0-6-2-12-6-14',
+      // 双臂
+      'M26 36c-6 4-8 14-6 26l6 8 6-14-2-20',
+      'M74 36c6 4 8 14 6 26l-6 8-6-14 2-20',
+    ],
+    highlight: [
+      // 主要肌群：胸
+      'M36 36c-2 8 4 14 10 14s12-6 10-14c-2-2-18-2-20 0z',
+      // 腹肌
+      'M42 52h16M42 60h16M42 68h16',
+      'M50 50v24',
+      // 肩
+      'M34 32c4-4 28-4 32 0',
+      // 腿
+      'M40 82c-2 14 4 26 10 28',
+      'M60 82c2 14-4 26-10 28',
+    ],
+  },
 };
 
 
-function MuscleIcon({ cat, color, size = 26 }: { cat: string; color: string; size?: number }) {
-  const paths = musclePaths[cat] || musclePaths['全身'];
+// 根据选中/未选中，绘制不同的 轮廓+高亮 组合
+// 未选中（白底卡片）：outline=深灰细线，highlight=primary填充
+// 选中（深绿卡片）：outline=白细线，highlight=白填充 + 额外淡色描边阴影层
+function MuscleArt({ cat, selected = false, size = 72 }: { cat: string; selected?: boolean; size?: number }) {
+  const art = muscleArt[cat] || muscleArt['全身'];
+  const outlineColor = selected ? 'rgba(255,255,255,0.95)' : '#2f3a34';
+  const highlightColor = selected ? '#FFFFFF' : '#2E8B57';
+  const highlightFillOpacity = selected ? 1 : 0.78;
+  const outlineW = selected ? 1.6 : 1.4;
+  const highlightW = selected ? 1.6 : 1.5;
+  const softShadeColor = selected ? 'rgba(255,255,255,0.08)' : 'rgba(46,139,87,0.06)';
+
   return (
-    <Svg width={size} height={size} viewBox="0 0 48 48" fill="none">
-      {paths.map((d, i) => (
-        <Path key={i} d={d} stroke={color} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+    <Svg width={size} height={(size * 110) / 100} viewBox="0 0 100 110" fill="none">
+      {/* 背景淡色区（让卡片更有呼吸感） */}
+      {art.outline.length > 0 && (
+        <Path d="M20 10c0-6 60-6 60 0v86c0 10-60 10-60 0V10z" fill={softShadeColor} opacity={selected ? 0 : 1} />
+      )}
+      {/* 人体轮廓 */}
+      {art.outline.map((d, i) => (
+        <Path
+          key={`o-${i}`}
+          d={d}
+          stroke={outlineColor}
+          strokeWidth={outlineW}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      ))}
+      {/* 肌肉高亮区域：填充为主，描边为辅 */}
+      {art.highlight.map((d, i) => (
+        <Path
+          key={`h-${i}`}
+          d={d}
+          fill={highlightColor}
+          fillOpacity={highlightFillOpacity}
+          stroke={highlightColor}
+          strokeOpacity={selected ? 0.85 : 0.9}
+          strokeWidth={highlightW}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       ))}
     </Svg>
   );
@@ -155,8 +484,8 @@ function ActionCard({ item, onPress }: { item: ExerciseItem; onPress: () => void
             onError={() => setImgError(true)}
           />
         ) : (
-          <View style={styles.gifPlaceholder}>
-            <Icons name="barbell-outline" size={22} color={colors.textTertiary} />
+          <View style={[styles.gifPlaceholder, { backgroundColor: colors.surfaceVariant }]}>
+            <Icons name="barbell-outline" size={18} color={colors.textTertiary} />
             <Text style={[styles.gifPlaceholderText, { color: colors.textTertiary }]}>暂无动图</Text>
           </View>
         )}
@@ -215,13 +544,13 @@ export default function ExercisePickerScreen(_props: ExercisePickerScreenProps) 
 
   const choose = (e: ExerciseItem) => {
     setPendingAction({ actionId: e.id, actionName: titleOf(e), muscle: e.muscle || e.bodyPart || '' });
-    navigation.goBack();
+    setPreview(null);
+    setTimeout(() => navigation.goBack(), 30);
   };
 
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={{ position: 'absolute', top: 0, left: 0, zIndex: 9999, color: 'red', fontSize: 10 }}>DEBUG-LOAD-OK</Text>
       <View style={[styles.header, { paddingTop: insets.top + Spacing.md }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.6}>
           <Icons name="close" size={24} color={colors.text} />
@@ -253,47 +582,86 @@ export default function ExercisePickerScreen(_props: ExercisePickerScreenProps) 
 
       <View style={styles.bodyRow}>
         <FlatList
-          style={[styles.sidebar, { backgroundColor: colors.surfaceVariant }]}
+          style={styles.sidebar}
           data={SIDEBAR}
           keyExtractor={i => i}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.sideListContent}
+          contentContainerStyle={[styles.sideListContent, { backgroundColor: colors.background }]}
           renderItem={({ item }) => {
             const active = !isSearching && item === selectedCat;
             const count = (grouped.get(item) || []).length;
+            // 选中态：主色实心（强对比）
+            // 未选中态：surfaceVariant + 细边框，让 10 个分类之间的层级更清晰（不再是纯白 + 几乎不可见的阴影）
+            const cardBg = active ? colors.primary : colors.surfaceVariant;
+            const nameColor = active ? '#FFFFFF' : colors.text;
+            const iconSize = active ? 50 : 44;
 
             return (
               <TouchableOpacity
-                style={[styles.sideItem, {
-                  backgroundColor: active ? colors.primary : 'transparent',
-                  ...(active ? Shadows.sm : {}),
-                }]}
+                style={[
+                  styles.sideItem,
+                  {
+                    backgroundColor: cardBg,
+                    borderWidth: 1,
+                    borderColor: active ? colors.primary : colors.borderLight,
+                    // 选中态使用 Shadows.md；未选中态用极轻的微阴影（Web 用 boxShadow 避免 shadow* 警告）
+                    ...(active
+                      ? Shadows.md
+                      : RNPlatform.select({
+                          web: { boxShadow: '0 1px 2px rgba(27, 67, 50, 0.04)' },
+                          default: {
+                            shadowColor: '#1B4332', shadowOpacity: 0.04,
+                            shadowRadius: 2, shadowOffset: { width: 0, height: 1 },
+                            elevation: 1,
+                          },
+                        })),
+                  },
+                ]}
                 onPress={() => { setSelectedCat(item); setSearch(''); }}
-                activeOpacity={0.85}
+                activeOpacity={active ? 0.92 : 0.8}
               >
-                {active ? (
-                  <View style={styles.sideActiveInner}>
-                    <MuscleIcon cat={item} color="#FFFFFF" size={36} />
-                    <View style={styles.sideActiveTextWrap}>
-                      <Text style={[styles.sideActiveText]}>{item}</Text>
-                      <View style={styles.sideActiveCountBadge}>
-                        <Text style={styles.sideActiveCountText}>{count}</Text>
-                      </View>
-                    </View>
-                    <Icons name="chevron-forward" size={16} color="rgba(255,255,255,0.9)" />
-                  </View>
-                ) : (
-                  <View style={styles.sideNormalInner}>
-                    <MuscleIcon cat={item} color={colors.primary} size={24} />
-                    <Text style={[styles.sideText, { color: colors.text }]} numberOfLines={1}>
-                      {item}
+                {/* 左侧：肌肉解剖示意图 */}
+                <View style={styles.sideArtWrap}>
+                  <MuscleArt cat={item} selected={active} size={iconSize} />
+                </View>
+
+                {/* 右侧：文字区（名称上 / 徽章下） */}
+                <View style={styles.sideTextCol}>
+                  <Text
+                    style={[
+                      styles.sideCatName,
+                      {
+                        color: nameColor,
+                        fontSize: active ? FontSize.lg + 1 : FontSize.md + 1,
+                        fontWeight: active ? '800' : '700',
+                      },
+                    ]}
+                  >
+                    {item}
+                  </Text>
+                  <View style={[
+                    styles.sideBadge,
+                    {
+                      backgroundColor: active ? 'rgba(255,255,255,0.95)' : colors.primarySoft,
+                    },
+                  ]}>
+                    <Text style={[
+                      styles.sideBadgeText,
+                      { color: active ? colors.primary : colors.primary },
+                    ]}>
+                      {count}
                     </Text>
-                    <View style={[styles.sideCount, { backgroundColor: colors.primarySoft }]}>
-                      <Text style={[styles.sideCountText, { color: colors.primary }]}>{count}</Text>
-                    </View>
-                    <Icons name="chevron-forward" size={14} color={colors.textTertiary} />
                   </View>
-                )}
+                </View>
+
+                {/* 最右侧：箭头 */}
+                <View style={styles.sideChevron}>
+                  <Icons
+                    name="chevron-forward"
+                    size={active ? 20 : 16}
+                    color={active ? 'rgba(255,255,255,0.92)' : colors.textTertiary}
+                  />
+                </View>
               </TouchableOpacity>
             );
           }}
@@ -432,56 +800,71 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, fontSize: FontSize.md },
 
 
-  bodyRow: { flex: 1, flexDirection: 'row', gap: Spacing.sm, paddingHorizontal: Spacing.sm },
+  bodyRow: { flex: 1, flexDirection: 'row', gap: Spacing.sm, paddingHorizontal: Spacing.sm, paddingTop: Spacing.xs },
 
-  sidebar: { width: '28%', minWidth: 100, maxWidth: 140 },
-  sideListContent: { paddingVertical: Spacing.xs, paddingHorizontal: Spacing.xs },
-  sideItem: {
-    borderRadius: BorderRadius.md,
-    marginBottom: 4,
-    overflow: 'hidden',
+  // ======= 侧边栏瘦身：左右比例约 1:2.6 (27% / 73%) =======
+  sidebar: {
+    width: '26%',
+    minWidth: 104,
+    maxWidth: 156,
   },
-  sideNormalInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: Spacing.sm + 2,
-    paddingHorizontal: Spacing.sm,
+  sideListContent: {
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.xs,
     gap: 8,
   },
-  sideText: { flexShrink: 1, fontSize: FontSize.sm, fontWeight: '600' },
-  sideCount: {
-    minWidth: 22, height: 18, paddingHorizontal: 6,
-    borderRadius: BorderRadius.full, alignItems: 'center', justifyContent: 'center',
-  },
-  sideCountText: { fontSize: 10, fontWeight: '700' },
-
-  sideActiveInner: {
+  sideItem: {
+    // 三层结构水平排列：[示意图 | 文字列 | 箭头]
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.md,
-    gap:10,
+    borderRadius: 14,
+    paddingHorizontal: 6,
+    paddingVertical: 6,
+    // 最小高度随示意图尺寸自适应（现在示意图更小）
+    minHeight: 60,
   },
-  sideActiveTextWrap:{
-    flex:1,
-    position:'relative'
+  // 左侧肌肉示意图容器：瘦身到 54px
+  sideArtWrap: {
+    width: 54,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   },
-  sideActiveText:{
-    color:'#ffffff',
-    fontSize:FontSize.lg,
-    fontWeight:'700'
+  // 中部文字列：名称在上 / 徽章在下
+  sideTextCol: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+    gap: 3,
+    minWidth: 0, // Web 防止长文本撑破 flex 布局
   },
-  sideActiveCountBadge:{
-    position:'absolute',
-    right:0,top:-4,
-    backgroundColor:'rgba(255,255,255,0.92)',
-    borderRadius:12,
-    paddingHorizontal:7,
-    paddingVertical:2
+  sideCatName: {
+    // 不再 numberOfLines=1 截断，完整显示"斜方肌/臀部/腹部"等
+    lineHeight: 17,
+    letterSpacing: 0.1,
   },
-  sideActiveCountText:{
-    color:'#2e7d52',
-    fontSize:11,
-    fontWeight:'700'
+  // 数量徽章：更紧凑的胶囊
+  sideBadge: {
+    alignSelf: 'flex-start',
+    minWidth: 24,
+    height: 18,
+    paddingHorizontal: 6,
+    borderRadius: BorderRadius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sideBadgeText: {
+    fontSize: FontSize.xs,
+    fontWeight: '800',
+    lineHeight: 12,
+    includeFontPadding: false,
+  },
+  // 最右侧箭头：更小
+  sideChevron: {
+    width: 16,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    flexShrink: 0,
   },
 
 
@@ -517,8 +900,14 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   gif: { width: '100%', height: '100%' },
-  gifPlaceholder: { alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: Spacing.md },
-  gifPlaceholderText: { fontSize: FontSize.xs },
+  gifPlaceholder: {
+    // 空态占位：使用更紧凑的布局，避免哑铃图标显得过大，与有图卡片视觉密度一致
+    flex: 1, width: '100%',
+    alignItems: 'center', justifyContent: 'center',
+    gap: 4,
+    paddingVertical: 10,
+  },
+  gifPlaceholderText: { fontSize: FontSize.xs, opacity: 0.85 },
   actionName: { fontSize: FontSize.md, fontWeight: '600', paddingHorizontal: Spacing.sm, paddingVertical: Spacing.sm, lineHeight: 18 },
 
 
