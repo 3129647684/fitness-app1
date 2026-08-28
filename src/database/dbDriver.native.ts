@@ -1,4 +1,4 @@
-﻿import { open } from '@op-engineering/op-sqlite';
+import { open } from '@op-engineering/op-sqlite';
 import type { QueryDriver, ExecResult } from './dbDriver.interface';
 import { runMigrations } from './dbMigrations';
 
@@ -14,6 +14,18 @@ function getDb(): any {
   return db;
 }
 
+// 兼容 op-sqlite 新旧版本：
+// 旧版: rows = { _array: [...] }, changes = number
+// 新版(v18+): rows = [...], rowsAffected = number
+function normalizeResult<T>(result: any): ExecResult<T> {
+  const rows = Array.isArray(result?.rows)
+    ? result.rows as T[]
+    : (result?.rows?._array ?? []) as T[];
+  const rowsAffected = result?.rowsAffected ?? result?.changes ?? 0;
+  const lastInsertRowId = result?.lastInsertRowId ?? null;
+  return { rows, rowsAffected, lastInsertRowId };
+}
+
 const nativeDriver: QueryDriver = {
   async initDb(): Promise<void> {
     if (initPromise) return initPromise;
@@ -23,11 +35,7 @@ const nativeDriver: QueryDriver = {
       await runMigrations({
         exec: async <T>(sql: string, params?: any[]): Promise<ExecResult<T>> => {
           const result = instance.execute(sql, params ?? []);
-          return {
-            rows: (result.rows?._array ?? []) as T[],
-            rowsAffected: result.changes ?? 0,
-            lastInsertRowId: result.lastInsertRowId ?? null,
-          };
+          return normalizeResult<T>(result);
         },
       });
     })();
@@ -46,11 +54,7 @@ const nativeDriver: QueryDriver = {
     await this.initDb();
     const instance = getDb();
     const result = instance.execute(sql, params ?? []);
-    return {
-      rows: (result.rows?._array ?? []) as T[],
-      rowsAffected: result.changes ?? 0,
-      lastInsertRowId: result.lastInsertRowId ?? null,
-    };
+    return normalizeResult<T>(result);
   },
 
   async execMany(sql: string, paramList: any[][]): Promise<void> {
