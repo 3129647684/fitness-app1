@@ -468,7 +468,15 @@ function ActionCard({ item, onPress }: { item: ExerciseItem; onPress: () => void
 
   return (
     <TouchableOpacity
-      style={[styles.actionCard, { backgroundColor: colors.card }]}
+      style={[
+        styles.actionCard,
+        {
+          backgroundColor: colors.card,
+          borderWidth: 1,
+          borderColor: colors.borderLight,
+          ...Shadows.md,
+        },
+      ]}
       onPress={onPress}
       activeOpacity={0.85}
     >
@@ -551,9 +559,18 @@ export default function ExercisePickerScreen(_props: ExercisePickerScreenProps) 
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { paddingTop: insets.top + Spacing.md }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.6}>
-          <Icons name="close" size={24} color={colors.text} />
+      <View style={[
+        styles.header,
+        {
+          paddingTop: insets.top + Spacing.md,
+          backgroundColor: colors.surface,
+          borderBottomLeftRadius: BorderRadius.xl,
+          borderBottomRightRadius: BorderRadius.xl,
+          ...Shadows.sm,
+        },
+      ]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.surfaceVariant, borderRadius: BorderRadius.full, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' }]} activeOpacity={0.6}>
+          <Icons name="close" size={22} color={colors.text} />
         </TouchableOpacity>
         <View style={styles.headerTitleWrap}>
           <Text style={[styles.headerTitle, { color: colors.text }]}>选择训练动作</Text>
@@ -796,17 +813,18 @@ const styles = StyleSheet.create({
     marginHorizontal: Spacing.lg, marginBottom: Spacing.sm,
     paddingHorizontal: Spacing.md, borderRadius: BorderRadius.full,
     height: 40, gap: Spacing.sm,
+    ...Shadows.sm,
   },
   searchInput: { flex: 1, fontSize: FontSize.md },
 
 
   bodyRow: { flex: 1, flexDirection: 'row', gap: Spacing.sm, paddingHorizontal: Spacing.sm, paddingTop: Spacing.xs },
 
-  // ======= 侧边栏瘦身：左右比例约 1:2.6 (27% / 73%) =======
+  // ======= 侧边栏：遵循设计约束 28% 宽度，限制最小最大防止挤压 =======
   sidebar: {
-    width: '26%',
-    minWidth: 104,
-    maxWidth: 156,
+    width: '28%',
+    minWidth: 100,
+    maxWidth: 140,
   },
   sideListContent: {
     paddingVertical: Spacing.xs,
@@ -875,19 +893,20 @@ const styles = StyleSheet.create({
   equipPill: {
     paddingHorizontal: Spacing.md, paddingVertical: 6,
     borderRadius: BorderRadius.full, borderWidth: 1,
+    ...Shadows.sm,
   },
-  equipPillText: { fontSize: FontSize.sm, fontWeight: '600' },
+  equipPillText: { fontSize: FontSize.sm, fontWeight: '600', letterSpacing: 0.2 },
 
 
   grid: { flex: 1 },
-  gridContent: { padding: Spacing.md, paddingBottom: Spacing.xl },
-  gridRow: { justifyContent: 'space-between', marginBottom: Spacing.md },
+  gridContent: { padding: Spacing.lg, paddingBottom: Spacing.xl },
+  gridRow: { justifyContent: 'space-between', marginBottom: Spacing.lg },
 
   actionCard: {
     width: '48%',
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.xl,
     overflow: 'hidden',
-    position:'relative'
+    position: 'relative',
   },
   starCorner:{
     position:'absolute',
@@ -908,18 +927,18 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   gifPlaceholderText: { fontSize: FontSize.xs, opacity: 0.85 },
-  actionName: { fontSize: FontSize.md, fontWeight: '600', paddingHorizontal: Spacing.sm, paddingVertical: Spacing.sm, lineHeight: 18 },
+  actionName: { fontSize: FontSize.md, fontWeight: '600', paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, lineHeight: 18, letterSpacing: 0.2 },
 
 
   emptyWrap: { alignItems: 'center', paddingTop: Spacing.xl * 2, gap: Spacing.sm },
   emptyText: { fontSize: FontSize.sm },
 
 
-  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center', padding: Spacing.lg },
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', padding: Spacing.lg },
   modalBackdropTouch: { ...StyleSheet.absoluteFillObject },
   previewCard: {
     width: '100%', maxWidth: 360, maxHeight: '90%', borderRadius: BorderRadius.xl,
-    overflow: 'hidden', ...Shadows.lg,
+    overflow: 'hidden', ...Shadows.lg, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
   },
   previewGifWrap: {
     width: '100%', backgroundColor: '#111',

@@ -252,7 +252,7 @@ export default function SettingsScreen(_props: SettingsScreenProps) {
     icon: string; title: string; subtitle?: string; onPress?: () => void; right?: React.ReactNode;
   }) => (
     <TouchableOpacity
-      style={[styles.settingRow, { borderBottomColor: colors.border }]}
+      style={[styles.settingRow, { borderBottomColor: colors.borderLight }]}
       onPress={onPress}
       disabled={!onPress}
       activeOpacity={0.7}
@@ -262,7 +262,7 @@ export default function SettingsScreen(_props: SettingsScreenProps) {
       </View>
       <View style={styles.settingRowContent}>
         <Text style={[styles.settingRowTitle, { color: colors.text }]}>{title}</Text>
-        {subtitle && <Text style={[styles.settingRowSubtitle, { color: colors.textSecondary }]}>{subtitle}</Text>}
+        {subtitle && <Text style={[styles.settingRowSubtitle, { color: colors.textTertiary }]}>{subtitle}</Text>}
       </View>
       {right ?? (onPress && <Icons name="chevron-forward" size={18} color={colors.textTertiary} />)}
     </TouchableOpacity>
@@ -271,15 +271,28 @@ export default function SettingsScreen(_props: SettingsScreenProps) {
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={{ paddingTop: insets.top + Spacing.lg, paddingBottom: 60 }}
+      contentContainerStyle={{ paddingBottom: 60 }}
     >
-      <View style={styles.header}>
+      <View style={[
+        styles.header,
+        {
+          paddingTop: insets.top + Spacing.lg,
+          backgroundColor: colors.surface,
+          borderBottomLeftRadius: BorderRadius.xl,
+          borderBottomRightRadius: BorderRadius.xl,
+          ...Shadows.sm,
+        },
+      ]}>
         <Text style={[styles.title, { color: colors.text }]}>设置</Text>
+        <Text style={[styles.headerSub, { color: colors.textTertiary }]}>管理个人资料和偏好</Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>我的账户</Text>
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }, Shadows.sm]}>
+        <View style={styles.sectionHeader}>
+          <View style={[styles.sectionIndicator, { backgroundColor: Colors.dynamic.coach || '#3B82F6' }]} />
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>我的账户</Text>
+        </View>
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.borderLight }, Shadows.md]}>
           <View style={styles.accountRow}>
             <View style={[styles.accountAvatar, { backgroundColor: colors.primarySoft }]}>
               <Icons name="person" size={20} color={colors.primary} />
@@ -292,7 +305,7 @@ export default function SettingsScreen(_props: SettingsScreenProps) {
             </View>
             <TouchableOpacity
               onPress={handleLogout}
-              style={[styles.logoutBtn, { borderColor: colors.border }]}
+              style={[styles.logoutBtn, { borderColor: colors.borderLight }]}
               activeOpacity={0.7}
             >
               <Text style={[styles.logoutText, { color: colors.danger }]}>退出</Text>
@@ -314,8 +327,11 @@ export default function SettingsScreen(_props: SettingsScreenProps) {
       </View>
 
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>个人档案</Text>
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }, Shadows.sm]}>
+        <View style={styles.sectionHeader}>
+          <View style={[styles.sectionIndicator, { backgroundColor: Colors.dynamic.heart || '#22C55E' }]} />
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>个人档案</Text>
+        </View>
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.borderLight }, Shadows.md]}>
           <SettingRow
             icon="person-outline"
             title="个人信息"
@@ -332,11 +348,14 @@ export default function SettingsScreen(_props: SettingsScreenProps) {
       </View>
 
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>标签管理</Text>
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }, Shadows.sm]}>
+        <View style={styles.sectionHeader}>
+          <View style={[styles.sectionIndicator, { backgroundColor: Colors.dynamic.flame || '#F97316' }]} />
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>标签管理</Text>
+        </View>
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.borderLight }, Shadows.md]}>
           <View style={styles.tagsContainer}>
             {tags.map(tag => (
-              <View key={tag} style={[styles.tagItem, { borderColor: colors.border }]}>
+              <View key={tag} style={[styles.tagItem, { backgroundColor: colors.surfaceVariant, borderColor: colors.borderLight }]}>
                 <Text style={[styles.tagText, { color: colors.text }]}>{tag}</Text>
                 <TouchableOpacity onPress={() => handleDeleteTag(tag)}>
                   <Icons name="close-circle" size={16} color={colors.danger} />
@@ -346,13 +365,13 @@ export default function SettingsScreen(_props: SettingsScreenProps) {
           </View>
           <View style={styles.addTagRow}>
             <TextInput
-              style={[styles.tagInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface }]}
+              style={[styles.tagInput, { color: colors.text, borderColor: colors.borderLight, backgroundColor: colors.surface }]}
               placeholder="新标签名称"
               placeholderTextColor={colors.textTertiary}
               value={newTag}
               onChangeText={setNewTag}
             />
-            <TouchableOpacity style={[styles.addTagBtn, { backgroundColor: colors.primary }, Shadows.sm]} onPress={handleAddTag} activeOpacity={0.85}>
+            <TouchableOpacity style={[styles.addTagBtn, { backgroundColor: colors.primary }, Shadows.md]} onPress={handleAddTag} activeOpacity={0.85}>
               <Icons name="add" size={20} color="#FFF" />
             </TouchableOpacity>
           </View>
@@ -360,8 +379,11 @@ export default function SettingsScreen(_props: SettingsScreenProps) {
       </View>
 
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>数据备份</Text>
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }, Shadows.sm]}>
+        <View style={styles.sectionHeader}>
+          <View style={[styles.sectionIndicator, { backgroundColor: Colors.dynamic.recovery || '#2DD4BF' }]} />
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>数据备份</Text>
+        </View>
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.borderLight }, Shadows.md]}>
           <SettingRow
             icon="download-outline"
             title="导出数据"
@@ -378,8 +400,11 @@ export default function SettingsScreen(_props: SettingsScreenProps) {
       </View>
 
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>关于</Text>
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }, Shadows.sm]}>
+        <View style={styles.sectionHeader}>
+          <View style={[styles.sectionIndicator, { backgroundColor: Colors.dynamic.gold || '#F59E0B' }]} />
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>关于</Text>
+        </View>
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.borderLight }, Shadows.md]}>
           <SettingRow
             icon="information-circle-outline"
             title="版本"
@@ -555,12 +580,24 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: {
     paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.sm,
-    marginBottom: Spacing.xs,
+    paddingBottom: Spacing.lg,
   },
   title: { fontSize: FontSize.xxxl, fontWeight: '700' },
+  headerSub: { fontSize: FontSize.sm, marginTop: 2, opacity: 0.8 },
   section: { marginBottom: Spacing.xl, paddingHorizontal: Spacing.lg },
-  sectionTitle: { fontSize: FontSize.sm, fontWeight: '600', marginBottom: Spacing.sm + 2, paddingHorizontal: Spacing.xs },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.sm + 2,
+    paddingHorizontal: Spacing.xs,
+    gap: Spacing.sm,
+  },
+  sectionIndicator: {
+    width: 6,
+    height: 18,
+    borderRadius: 3,
+  },
+  sectionTitle: { fontSize: FontSize.sm, fontWeight: '600' },
   accountRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -596,17 +633,17 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     fontWeight: '600',
   },
-  card: { borderRadius: BorderRadius.lg, borderWidth: 1, overflow: 'hidden' },
+  card: { borderRadius: BorderRadius.xl, borderWidth: 1, overflow: 'hidden' },
   settingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.md + 2,
+    padding: Spacing.md + 4,
     borderBottomWidth: 1,
   },
   settingRowLeft: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Spacing.md,
@@ -653,13 +690,14 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContent: {
     borderTopLeftRadius: BorderRadius.xxl,
     borderTopRightRadius: BorderRadius.xxl,
     padding: Spacing.xl,
     paddingBottom: 40,
+    ...Shadows.lg,
   },
   modalTitle: {
     fontSize: FontSize.xl,

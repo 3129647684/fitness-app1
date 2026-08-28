@@ -100,6 +100,372 @@ export default function RecordScreen(_props: RecordScreenProps) {
     }
   };
 
+  const SectionHeader = ({ title, icon, expandable, expanded, onToggle, rightElement }: {
+    title: string; icon: string; expandable?: boolean; expanded?: boolean; onToggle?: () => void; rightElement?: React.ReactNode;
+  }) => (
+    <TouchableOpacity
+      style={styles.sectionHeader}
+      onPress={onToggle}
+      disabled={!expandable}
+      activeOpacity={0.7}
+    >
+      <View style={styles.sectionHeaderLeft}>
+        <View style={[styles.sectionIcon, { backgroundColor: colors.primary + '18' }]}>
+          <Icons name={icon as any} size={16} color={colors.primary} />
+        </View>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>
+      </View>
+      {rightElement}
+      {expandable && (
+        <Icons name={expanded ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textTertiary} />
+      )}
+    </TouchableOpacity>
+  );
+
+  const FoodPickerModal = () => (
+    <Modal visible={foodPickerVisible} animationType="slide" transparent onRequestClose={() => setFoodPickerVisible(false)}>
+      <View style={styles.modalOverlay}>
+        <View style={[styles.pickerModal, { backgroundColor: colors.surface }]}>
+          <View style={styles.pickerHeader}>
+            <Text style={[styles.pickerTitle, { color: colors.text }]}>选择食物</Text>
+            <TouchableOpacity onPress={() => setFoodPickerVisible(false)}>
+              <Icons name="close" size={22} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView style={{ maxHeight: 400 }}>
+            {FoodDatabase.map(cat => (
+              <View key={cat.category} style={styles.foodCategory}>
+                <Text style={[styles.foodCategoryTitle, { color: colors.textSecondary }]}>{cat.category}</Text>
+                <View style={styles.foodGrid}>
+                  {cat.foods.map(food => (
+                    <TouchableOpacity
+                      key={food.name}
+                      style={[styles.foodChip, { borderColor: colors.border, backgroundColor: colors.surfaceVariant }]}
+                      onPress={() => {
+                        setSelectedFoodDef(food);
+                        setFoodGrams('');
+                        setFoodMealType('');
+                        setFoodPickerVisible(false);
+                        setTimeout(() => setFoodGramsVisible(true), 50);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.foodChipName, { color: colors.text }]}>{food.name}</Text>
+                      <Text style={[styles.foodChipCal, { color: colors.textTertiary }]}>{food.cal}kcal/100g</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+          <TouchableOpacity
+            style={[styles.customAddBtn, { backgroundColor: colors.primary }]}
+            onPress={() => { setFoodPickerVisible(false); setTimeout(() => setCustomFoodVisible(true), 50); }}
+            activeOpacity={0.85}
+          >
+            <Icons name="add" size={20} color="#FFF" />
+            <Text style={styles.customAddBtnText}>自定义食物</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+
+  const FoodGramsModal = () => (
+    <Modal visible={foodGramsVisible} animationType="slide" transparent onRequestClose={() => { setFoodGramsVisible(false); }}>
+      <View style={styles.modalOverlay}>
+        <View style={[styles.inputModal, { backgroundColor: colors.surface }]}>
+          {selectedFoodDef ? (
+            <>
+              <Text style={[styles.inputModalTitle, { color: colors.text }]}>{selectedFoodDef.name}</Text>
+              <Text style={[styles.inputModalSub, { color: colors.textTertiary }]}>每100g: {selectedFoodDef.cal}kcal</Text>
+            </>
+          ) : (
+            <Text style={[styles.inputModalTitle, { color: colors.text }]}>添加食物</Text>
+          )}
+
+          <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>食用克数 (g)</Text>
+          <TextInput
+            style={[styles.modalTextInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+            value={foodGrams}
+            onChangeText={setFoodGrams}
+            keyboardType="decimal-pad"
+            placeholder="如 150"
+            placeholderTextColor={colors.textTertiary}
+          />
+
+          <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>餐次 (选填)</Text>
+          <View style={styles.mealTypeRow}>
+            {MealTypeOptions.map((opt: any) => (
+              <TouchableOpacity
+                key={opt.value}
+                onPress={() => setFoodMealType(opt.value as MealType)}
+                style={[
+                  styles.mealTypeBtn,
+                  {
+                    backgroundColor: foodMealType === opt.value ? colors.primary : colors.surfaceVariant,
+                    borderColor: foodMealType === opt.value ? colors.primary : colors.border,
+                  },
+                ]}
+                activeOpacity={0.7}
+              >
+                <Text style={{ color: foodMealType === opt.value ? '#FFF' : colors.textSecondary, fontSize: FontSize.sm }}>{opt.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {foodGrams && selectedFoodDef ? (
+            <View style={[styles.nutritionPreview, { backgroundColor: colors.primarySoft }]}>
+              {(() => {
+                const n = calcFoodNutrition(selectedFoodDef, parseFloat(foodGrams));
+                return (
+                  <View style={styles.nutritionPreviewRow}>
+                    <Text style={[styles.nutritionPreviewItem, { color: colors.primary }]}>{n.cal} kcal</Text>
+                    <Text style={[styles.nutritionPreviewItem, { color: colors.textSecondary }]}>蛋白{n.protein}</Text>
+                    <Text style={[styles.nutritionPreviewItem, { color: colors.textSecondary }]}>碳水{n.carb}</Text>
+                    <Text style={[styles.nutritionPreviewItem, { color: colors.textSecondary }]}>脂肪{n.fat}</Text>
+                  </View>
+                );
+              })()}
+            </View>
+          ) : null}
+
+          <View style={styles.modalButtons}>
+            <TouchableOpacity style={[styles.modalBtn, { borderColor: colors.border }]} onPress={() => setFoodGramsVisible(false)} activeOpacity={0.7}>
+              <Text style={{ color: colors.textSecondary }}>取消</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.modalBtn, { backgroundColor: colors.primary }]} onPress={addFoodFromDB} activeOpacity={0.85}>
+              <Text style={{ color: '#FFF', fontWeight: '600' }}>加入</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+
+  const CustomFoodModal = () => (
+    <Modal visible={customFoodVisible} animationType="slide" transparent onRequestClose={() => setCustomFoodVisible(false)}>
+      <View style={styles.modalOverlay}>
+        <View style={[styles.inputModal, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.inputModalTitle, { color: colors.text }]}>自定义食物</Text>
+          <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>食物名称</Text>
+          <TextInput style={[styles.modalTextInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]} value={customFood.name} onChangeText={(v) => setCustomFood({ ...customFood, name: v })} placeholder="如 全麦面包" placeholderTextColor={colors.textTertiary} />
+          <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>食用重量 (g)</Text>
+          <TextInput style={[styles.modalTextInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]} value={customFood.weight} onChangeText={(v) => setCustomFood({ ...customFood, weight: v })} keyboardType="decimal-pad" placeholder="如 100" placeholderTextColor={colors.textTertiary} />
+          <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>热量 (kcal)</Text>
+          <TextInput style={[styles.modalTextInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]} value={customFood.cal} onChangeText={(v) => setCustomFood({ ...customFood, cal: v })} keyboardType="decimal-pad" placeholder="如 250" placeholderTextColor={colors.textTertiary} />
+          <View style={styles.formGrid}>
+            <View style={styles.formItem}>
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>蛋白质 (选填)</Text>
+              <TextInput style={[styles.modalTextInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]} value={customFood.protein} onChangeText={(v) => setCustomFood({ ...customFood, protein: v })} keyboardType="decimal-pad" placeholder="g" placeholderTextColor={colors.textTertiary} />
+            </View>
+            <View style={styles.formItem}>
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>碳水 (选填)</Text>
+              <TextInput style={[styles.modalTextInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]} value={customFood.carb} onChangeText={(v) => setCustomFood({ ...customFood, carb: v })} keyboardType="decimal-pad" placeholder="g" placeholderTextColor={colors.textTertiary} />
+            </View>
+            <View style={styles.formItem}>
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>脂肪 (选填)</Text>
+              <TextInput style={[styles.modalTextInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]} value={customFood.fat} onChangeText={(v) => setCustomFood({ ...customFood, fat: v })} keyboardType="decimal-pad" placeholder="g" placeholderTextColor={colors.textTertiary} />
+            </View>
+          </View>
+          <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>餐次 (选填)</Text>
+          <View style={styles.mealTypeRow}>
+            {MealTypeOptions.map((opt: any) => (
+              <TouchableOpacity key={opt.value} onPress={() => setFoodMealType(opt.value as MealType)} style={[styles.mealTypeBtn, { backgroundColor: foodMealType === opt.value ? colors.primary : colors.surfaceVariant, borderColor: foodMealType === opt.value ? colors.primary : colors.border }]} activeOpacity={0.7}>
+                <Text style={{ color: foodMealType === opt.value ? '#FFF' : colors.textSecondary, fontSize: FontSize.sm }}>{opt.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <View style={styles.modalButtons}>
+            <TouchableOpacity style={[styles.modalBtn, { borderColor: colors.border }]} onPress={() => setCustomFoodVisible(false)} activeOpacity={0.7}>
+              <Text style={{ color: colors.textSecondary }}>取消</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.modalBtn, { backgroundColor: colors.primary }]} onPress={addCustomFood} activeOpacity={0.85}>
+              <Text style={{ color: '#FFF', fontWeight: '600' }}>加入</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+
+  const strengthPreview = !strengthSets ? null : (() => {
+    const s = parseInt(strengthSets, 10);
+    if (isNaN(s) || s <= 0) return null;
+    const wb = calcUserWeight();
+    if (wb === null) return 'needWeight';
+    return calcStrengthCalorie(s, wb);
+  })();
+
+  const cardioDef = CardioDatabase.find(c => c.key === cardioType) ?? CardioDatabase[0];
+  const cardioPreview = !cardioDuration ? null : (() => {
+    const d = parseInt(cardioDuration, 10);
+    if (isNaN(d) || d <= 0) return null;
+    const wb = calcUserWeight();
+    if (wb === null) return 'needWeight';
+    return calcCardioCalorie(cardioDef.met, d, wb);
+  })();
+
+  const StrengthModal = () => (
+    <Modal visible={strengthModalVisible} animationType="slide" transparent onRequestClose={() => setStrengthModalVisible(false)}>
+      <View style={styles.modalOverlay}>
+        <View style={[styles.inputModal, { backgroundColor: colors.surface }]}>
+          <View style={styles.pickerHeader}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.inputModalTitle, { color: colors.text }]}>添加力量动作</Text>
+              <Text style={[styles.inputModalSub, { color: colors.textTertiary }]}>
+                {strengthAction ? `${strengthAction.actionName} · ${strengthAction.muscle}` : '请先选择训练动作'}
+              </Text>
+            </View>
+            <TouchableOpacity onPress={() => setStrengthModalVisible(false)}>
+              <Icons name="close" size={22} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+
+          {!strengthAction ? (
+            <TouchableOpacity
+              style={[styles.addListBtn, { borderColor: colors.primary }]}
+              onPress={() => {
+                setStrengthModalVisible(false);
+                setTimeout(() => navigation.navigate('ExercisePicker'), 50);
+              }}
+              activeOpacity={0.7}
+            >
+              <Icons name="barbell-outline" size={18} color={colors.primary} />
+              <Text style={[styles.addListBtnText, { color: colors.primary }]}>选择训练动作</Text>
+              <Icons name="chevron-forward" size={16} color={colors.primary} />
+            </TouchableOpacity>
+          ) : (
+            <>
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>组数</Text>
+              <TextInput
+                style={[styles.modalTextInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+                value={strengthSets}
+                onChangeText={setStrengthSets}
+                keyboardType="numeric"
+                placeholder="如 4"
+                placeholderTextColor={colors.textTertiary}
+              />
+              <View style={styles.formGrid}>
+                <View style={styles.formItem}>
+                  <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>每组次数</Text>
+                  <TextInput
+                    style={[styles.modalTextInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+                    value={strengthReps}
+                    onChangeText={setStrengthReps}
+                    keyboardType="numeric"
+                    placeholder="如 8"
+                    placeholderTextColor={colors.textTertiary}
+                  />
+                </View>
+                <View style={styles.formItem}>
+                  <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>重量 (kg)</Text>
+                  <TextInput
+                    style={[styles.modalTextInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+                    value={strengthWeight}
+                    onChangeText={setStrengthWeight}
+                    keyboardType="decimal-pad"
+                    placeholder="如 60"
+                    placeholderTextColor={colors.textTertiary}
+                  />
+                </View>
+              </View>
+              {strengthPreview === 'needWeight' ? (
+                <View style={[styles.nutritionPreview, { backgroundColor: colors.surfaceVariant }]}>
+                  <Text style={[styles.nutritionPreviewItem, { color: colors.textTertiary }]}>请先记录体重或在设置中填写体重</Text>
+                </View>
+              ) : strengthPreview ? (
+                <View style={[styles.nutritionPreview, { backgroundColor: colors.primarySoft }]}>
+                  <Text style={[styles.nutritionPreviewItem, { color: colors.primary }]}>
+                    约耗时 {strengthPreview.durationMin} 分钟 · 消耗 {strengthPreview.calorie} kcal
+                  </Text>
+                </View>
+              ) : null}
+            </>
+          )}
+
+          {strengthAction && (
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={[styles.modalBtn, { borderColor: colors.border }]} onPress={() => setStrengthModalVisible(false)} activeOpacity={0.7}>
+                <Text style={{ color: colors.textSecondary }}>取消</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalBtn, { backgroundColor: colors.primary }]} onPress={addStrengthSport} activeOpacity={0.85}>
+                <Text style={{ color: '#FFF', fontWeight: '600' }}>确认</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      </View>
+    </Modal>
+  );
+
+  const CardioModal = () => (
+    <Modal visible={cardioModalVisible} animationType="slide" transparent onRequestClose={() => setCardioModalVisible(false)}>
+      <View style={styles.modalOverlay}>
+        <View style={[styles.inputModal, { backgroundColor: colors.surface }]}>
+          <View style={styles.pickerHeader}>
+            <Text style={[styles.inputModalTitle, { color: colors.text }]}>添加有氧运动</Text>
+            <TouchableOpacity onPress={() => setCardioModalVisible(false)}>
+              <Icons name="close" size={22} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+
+          <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>选择项目</Text>
+          <View style={styles.mealTypeRow}>
+            {CardioDatabase.map(c => (
+              <TouchableOpacity
+                key={c.key}
+                onPress={() => setCardioType(c.key)}
+                style={[
+                  styles.mealTypeBtn,
+                  {
+                    backgroundColor: cardioType === c.key ? colors.primary : colors.surfaceVariant,
+                    borderColor: cardioType === c.key ? colors.primary : colors.border,
+                    paddingHorizontal: Spacing.lg,
+                  },
+                ]}
+                activeOpacity={0.7}
+              >
+                <Text style={{ color: cardioType === c.key ? '#FFF' : colors.textSecondary, fontSize: FontSize.sm }}>{c.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>运动时长 (分钟)</Text>
+          <TextInput
+            style={[styles.modalTextInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+            value={cardioDuration}
+            onChangeText={setCardioDuration}
+            keyboardType="numeric"
+            placeholder="如 30"
+            placeholderTextColor={colors.textTertiary}
+          />
+
+          {cardioPreview === 'needWeight' ? (
+            <View style={[styles.nutritionPreview, { backgroundColor: colors.surfaceVariant }]}>
+              <Text style={[styles.nutritionPreviewItem, { color: colors.textTertiary }]}>请先记录体重或在设置中填写体重</Text>
+            </View>
+          ) : cardioPreview ? (
+            <View style={[styles.nutritionPreview, { backgroundColor: colors.primarySoft }]}>
+              <Text style={[styles.nutritionPreviewItem, { color: colors.primary }]}>
+                {cardioDef.label} · 消耗 {cardioPreview} kcal
+              </Text>
+            </View>
+          ) : null}
+
+          <View style={styles.modalButtons}>
+            <TouchableOpacity style={[styles.modalBtn, { borderColor: colors.border }]} onPress={() => setCardioModalVisible(false)} activeOpacity={0.7}>
+              <Text style={{ color: colors.textSecondary }}>取消</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.modalBtn, { backgroundColor: colors.primary }]} onPress={addCardioSport} activeOpacity={0.85}>
+              <Text style={{ color: '#FFF', fontWeight: '600' }}>确认</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
@@ -120,11 +486,11 @@ export default function RecordScreen(_props: RecordScreenProps) {
           </View>
         </View>
 
-        {/* 核心数据卡片 */}
-        <View style={[styles.card, { backgroundColor: colors.card, borderRadius: r.xl }, Shadows.sm]}>
-          <View style={styles.cardHeader}>
-            <View style={[styles.cardIcon, { backgroundColor: colors.primarySoft }]}>
-              <Icons name="body" size={18} color={colors.primary} />
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.borderLight }, Shadows.md]}>
+          <SectionHeader title="基础体态指标" icon="body-outline" />
+          <View style={styles.formGrid}>
+            <View style={styles.formItem}>
+              <InputField label="身高" value={profile?.height?.toString() ?? ''} onChangeText={() => {}} unit="cm" placeholder="请在设置中修改" disabled />
             </View>
             <Text style={[styles.cardTitle, { color: colors.text, fontSize: f.md }]}>今日身体数据</Text>
           </View>
@@ -148,26 +514,245 @@ export default function RecordScreen(_props: RecordScreenProps) {
           </View>
         </View>
 
-        {/* 提示 */}
-        <View style={styles.tipRow}>
-          <Icons name="information-circle-outline" size={14} color={colors.textTertiary} />
-          <Text style={[styles.tipText, { color: colors.textTertiary, fontSize: f.xs }]}>
-            BMI 根据体重和身高自动计算，身高在「我的」页面设置
-          </Text>
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.borderLight }, Shadows.md]}>
+          <SectionHeader title="身体围度" icon="resize-outline" expandable expanded={showCircumference} onToggle={() => setShowCircumference(!showCircumference)} />
+          {showCircumference && (
+            <View style={styles.formGrid}>
+              <View style={styles.formItem}><InputField label="胸围" value={chest} onChangeText={setChest} unit="cm" /></View>
+              <View style={styles.formItem}><InputField label="腰围" value={waist} onChangeText={setWaist} unit="cm" /></View>
+              <View style={styles.formItem}><InputField label="臀围" value={hip} onChangeText={setHip} unit="cm" /></View>
+              <View style={styles.formItem}><InputField label="上臂围" value={upperArm} onChangeText={setUpperArm} unit="cm" /></View>
+              <View style={styles.formItem}><InputField label="大腿围" value={thigh} onChangeText={setThigh} unit="cm" /></View>
+              <View style={styles.formItem}><InputField label="小腿围" value={calf} onChangeText={setCalf} unit="cm" /></View>
+              <View style={styles.formItem}><InputField label="颈围" value={neck} onChangeText={setNeck} unit="cm" /></View>
+            </View>
+          )}
+        </View>
+
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.borderLight }, Shadows.sm]}>
+          <SectionHeader title="日常生命体征" icon="heart-outline" expandable expanded={showVitals} onToggle={() => setShowVitals(!showVitals)} />
+          {showVitals && (
+            <View>
+              <View style={styles.formGrid}>
+                <View style={styles.formItem}><InputField label="静息心率" value={heartRate} onChangeText={setHeartRate} unit="bpm" placeholder="测量后输入" /></View>
+                <View style={styles.formItem}><InputField label="步数" value={steps} onChangeText={setSteps} unit="步" keyboardType="numeric" /></View>
+                <View style={styles.formItem}><InputField label="饮水量" value={waterIntake} onChangeText={setWaterIntake} unit="ml" placeholder="如 1500" /></View>
+                <View style={styles.formItem}><InputField label="体温" value={bodyTemp} onChangeText={setBodyTemp} unit="°C" placeholder="如 36.5" /></View>
+              </View>
+              <Text style={[styles.subLabel, { color: colors.textSecondary }]}>心情</Text>
+              <View style={styles.moodRow}>
+                {MoodOptions.map((opt: any) => (
+                  <TouchableOpacity key={opt.value} onPress={() => setMood(mood === opt.value ? 0 : opt.value)} style={[styles.moodBtn, { backgroundColor: mood === opt.value ? colors.primarySoft : colors.surfaceVariant, borderColor: mood === opt.value ? colors.primary : colors.border }]} activeOpacity={0.7}>
+                    <Text style={styles.moodEmoji}>{opt.emoji}</Text>
+                    <Text style={[styles.moodLabel, { color: mood === opt.value ? colors.primary : colors.textTertiary }]}>{opt.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
+        </View>
+
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.borderLight }, Shadows.md]}>
+          <SectionHeader
+            title="今日饮食记录"
+            icon="restaurant-outline"
+            expandable
+            expanded={showFood}
+            onToggle={() => setShowFood(!showFood)}
+            rightElement={foodList.length > 0 ? (
+              <View style={[styles.summaryBadge, { backgroundColor: colors.primarySoft }]}>
+                <Text style={[styles.summaryText, { color: colors.primary }]}>{foodSummary.cal} kcal</Text>
+              </View>
+            ) : undefined}
+          />
+          {showFood && (
+            <View>
+              {foodList.length === 0 ? (
+                <Text style={[styles.emptyListText, { color: colors.textTertiary }]}>尚未添加饮食记录，点击下方按钮开始记录</Text>
+              ) : (
+                <>
+                  {foodList.map((f, i) => (
+                    <View key={i} style={[styles.listItem, { borderBottomColor: colors.border }]}>
+                      <View style={styles.listItemMain}>
+                        <Text style={[styles.listItemName, { color: colors.text }]}>
+                          {f.name}
+                          {f.mealType && <Text style={[styles.listItemTag, { color: colors.textTertiary }]}> · {MealTypeOptions.find(m => m.value === f.mealType)?.label}</Text>}
+                        </Text>
+                        <Text style={[styles.listItemSub, { color: colors.textSecondary }]}>{f.weight}g · {f.cal} kcal</Text>
+                      </View>
+                      <TouchableOpacity onPress={() => removeFood(i)}>
+                        <Icons name="close-circle" size={20} color={colors.danger} />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                  <View style={[styles.summaryBox, { backgroundColor: colors.surfaceVariant }]}>
+                    <Text style={[styles.summaryItem, { color: colors.text }]}>热量 <Text style={styles.summaryBold}>{foodSummary.cal}</Text></Text>
+                    <Text style={[styles.summaryItem, { color: colors.textSecondary }]}>蛋白 {foodSummary.protein.toFixed(1)}</Text>
+                    <Text style={[styles.summaryItem, { color: colors.textSecondary }]}>碳水 {foodSummary.carb.toFixed(1)}</Text>
+                    <Text style={[styles.summaryItem, { color: colors.textSecondary }]}>脂肪 {foodSummary.fat.toFixed(1)}</Text>
+                  </View>
+                </>
+              )}
+              <TouchableOpacity style={[styles.addListBtn, { borderColor: colors.primary }]} onPress={() => setFoodPickerVisible(true)} activeOpacity={0.7}>
+                <Icons name="add-circle-outline" size={18} color={colors.primary} />
+                <Text style={[styles.addListBtnText, { color: colors.primary }]}>添加食物</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.borderLight }, Shadows.md]}>
+          <SectionHeader
+            title="今日运动记录（明细）"
+            icon="barbell-outline"
+            expandable
+            expanded={showSport}
+            onToggle={() => setShowSport(!showSport)}
+            rightElement={
+              <View style={[styles.summaryBadge, { backgroundColor: colors.primarySoft }]}>
+                <Text style={[styles.summaryText, { color: colors.primary }]}>{sportSummary.toFixed(1)} kcal</Text>
+              </View>
+            }
+          />
+          {showSport && (
+            <View>
+              <Text style={[styles.sportTotalText, { color: colors.textSecondary }]}>
+                今日运动总消耗：<Text style={[styles.sportTotalValue, { color: colors.primary }]}>{sportSummary.toFixed(1)} kcal</Text>
+              </Text>
+
+              {sportList.length === 0 ? (
+                <View style={styles.sportEmpty}>
+                  <Icons name="fitness-outline" size={26} color={colors.textTertiary} />
+                  <Text style={[styles.emptyListText, { color: colors.textTertiary }]}>暂无运动记录</Text>
+                </View>
+              ) : (
+                sportList.map((s, i) => (
+                  <View key={i} style={[styles.listItem, { borderBottomColor: colors.border }]}>
+                    <View style={styles.listItemMain}>
+                      <Text style={[styles.listItemName, { color: colors.text }]}>
+                        {s.actionName}
+                        {s.type === 'strength' && s.muscle ? <Text style={[styles.listItemTag, { color: colors.textTertiary }]}> · {s.muscle}</Text> : null}
+                      </Text>
+                      {s.type === 'strength' ? (
+                        <Text style={[styles.listItemSub, { color: colors.textSecondary }]}>
+                          {s.sets}组 × {s.reps}次 {s.weight ? `${s.weight}kg` : ''} ｜ 消耗：{s.calorie} kcal
+                        </Text>
+                      ) : (
+                        <Text style={[styles.listItemSub, { color: colors.textSecondary }]}>
+                          {s.durationMin} min ｜ 消耗：{s.calorie} kcal
+                        </Text>
+                      )}
+                    </View>
+                    <TouchableOpacity onPress={() => removeSport(i)}>
+                      <Icons name="close-circle" size={20} color={colors.danger} />
+                    </TouchableOpacity>
+                  </View>
+                ))
+              )}
+
+              <View style={styles.sportBtns}>
+                <TouchableOpacity
+                  style={[styles.addSportBtn, { borderColor: colors.primary }]}
+                  onPress={() => { setStrengthAction(null); setStrengthModalVisible(true); }}
+                  activeOpacity={0.7}
+                >
+                  <Icons name="add" size={18} color={colors.primary} />
+                  <Text style={[styles.addListBtnText, { color: colors.primary }]}>添加力量动作</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.addSportBtn, { borderColor: colors.primary }]}
+                  onPress={() => setCardioModalVisible(true)}
+                  activeOpacity={0.7}
+                >
+                  <Icons name="add" size={18} color={colors.primary} />
+                  <Text style={[styles.addListBtnText, { color: colors.primary }]}>添加有氧运动</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.quickRow}>
+                <TouchableOpacity style={[styles.quickBtn, { backgroundColor: colors.surfaceVariant, borderColor: colors.border }]} onPress={quickStrength} activeOpacity={0.7}>
+                  <Icons name="flash-outline" size={14} color={colors.primary} />
+                  <Text style={[styles.quickText, { color: colors.textSecondary }]}>力量训练 (快速)</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.quickBtn, { backgroundColor: colors.surfaceVariant, borderColor: colors.border }]} onPress={quickCardio} activeOpacity={0.7}>
+                  <Icons name="flash-outline" size={14} color={colors.primary} />
+                  <Text style={[styles.quickText, { color: colors.textSecondary }]}>有氧运动 (快速)</Text>
+                </TouchableOpacity>
+              </View>
+
+              {sportList.length > 0 && (
+                <TouchableOpacity style={[styles.clearSportBtn, { borderColor: colors.danger }]} onPress={() => setSportList([])} activeOpacity={0.7}>
+                  <Icons name="trash-outline" size={14} color={colors.danger} />
+                  <Text style={{ color: colors.danger, fontSize: FontSize.xs }}>清空全部运动记录</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+        </View>
+
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.borderLight }, Shadows.sm]}>
+          <SectionHeader title="睡眠与身体状态" icon="moon-outline" expandable expanded={showSleep} onToggle={() => setShowSleep(!showSleep)} />
+          {showSleep && (
+            <View>
+              <View style={styles.formGrid}>
+                <View style={styles.formItem}><InputField label="睡眠时长" value={sleepDuration} onChangeText={setSleepDuration} unit="h" /></View>
+              </View>
+              <Text style={[styles.subLabel, { color: colors.textSecondary }]}>睡眠质量</Text>
+              <View style={styles.starRow}>
+                {[1, 2, 3, 4, 5].map(score => (
+                  <TouchableOpacity key={score} onPress={() => setSleepScore(sleepScore === score ? 0 : score)}>
+                    <Icons name={score <= sleepScore ? 'star' : 'star-outline'} size={28} color={score <= sleepScore ? colors.warning : colors.textTertiary} />
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <Text style={[styles.subLabel, { color: colors.textSecondary }]}>身体状态 (多选)</Text>
+              <View style={styles.tagsContainer}>
+                {BodyStatusOptions.map((bs: any) => (
+                  <TagChip key={bs.value} label={bs.label} selected={bodyStatuses.includes(bs.value)} onPress={() => toggleBodyStatus(bs.value)} />
+                ))}
+              </View>
+              <View style={styles.menstrualRow}>
+                <TouchableOpacity style={[styles.toggleRow, { borderColor: colors.border }]} onPress={() => setIsMenstrual(!isMenstrual)} activeOpacity={0.7}>
+                  <Icons name={isMenstrual ? 'toggle' : 'toggle-outline'} size={28} color={isMenstrual ? colors.primary : colors.textTertiary} />
+                  <Text style={[styles.toggleLabel, { color: colors.text }]}>生理期标记</Text>
+                </TouchableOpacity>
+                {isMenstrual && (
+                  <View style={{ flex: 1, marginLeft: Spacing.md }}>
+                    <InputField label="第几天" value={menstrualDay} onChangeText={setMenstrualDay} keyboardType="numeric" />
+                  </View>
+                )}
+              </View>
+            </View>
+          )}
+        </View>
+
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.borderLight }, Shadows.sm]}>
+          <SectionHeader title="自定义标签" icon="pricetags-outline" />
+          <View style={styles.tagsContainer}>
+            {availableTags.map((tag: any) => (
+              <TagChip key={tag} label={tag} selected={selectedTags.includes(tag)} onPress={() => toggleTag(tag)} />
+            ))}
+          </View>
+        </View>
+
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.borderLight }, Shadows.sm]}>
+          <SectionHeader title="备注" icon="chatbubble-outline" />
+          <InputField label="" value={remark} onChangeText={setRemark} placeholder="记录身体感受、饮食心得、训练总结..." multiline keyboardType="default" />
         </View>
       </ScrollView>
 
-      {/* 底部保存按钮 */}
-      <View style={[styles.bottomBar, { backgroundColor: colors.surface, borderTopColor: colors.border, paddingBottom: Math.max(safeBottom, s.md) }]}>
+      <View style={[styles.bottomBar, { backgroundColor: colors.surface, borderTopColor: colors.borderLight, paddingBottom: Math.max(safeBottom, Spacing.md) }]}>
         <GradientView
-          colors={colorScheme === 'dark' ? ['#2D6A4F', '#1B4332'] : ['#52B788', '#2D6A4F']}
+          colors={colorScheme === 'dark' ? ['#2D6A4F', '#40916C'] : ['#52B788', '#2D6A4F']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={[styles.saveButton, Shadows.md]}
         >
           <TouchableOpacity style={styles.saveButtonInner} onPress={validateAndSave} activeOpacity={0.85}>
-            <Icons name="checkmark-circle" size={20} color="#FFFFFF" />
-            <Text style={[styles.saveButtonText, { fontSize: f.lg }]}>保存记录</Text>
+            <View style={[styles.saveIconWrap, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
+              <Icons name="checkmark-circle" size={20} color="#FFFFFF" />
+            </View>
+            <Text style={styles.saveButtonText}>保存记录</Text>
           </TouchableOpacity>
         </GradientView>
       </View>
@@ -177,79 +762,79 @@ export default function RecordScreen(_props: RecordScreenProps) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.md,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: Spacing.sm,
-  },
-  headerText: { flex: 1 },
-  title: { fontWeight: '700' },
-  dateText: { marginTop: 2 },
-  card: {
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
-    padding: Spacing.lg,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.lg,
-  },
-  cardIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardTitle: { fontWeight: '600' },
-  formGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.md,
-  },
+  header: { paddingHorizontal: Spacing.lg, paddingBottom: Spacing.sm, marginBottom: Spacing.xs },
+  title: { fontSize: FontSize.xxxl, fontWeight: '700' },
+  dateText: { fontSize: FontSize.sm, marginTop: 4 },
+  card: { marginHorizontal: Spacing.lg, marginBottom: Spacing.sm + 2, padding: Spacing.md + 2, borderRadius: BorderRadius.lg, borderWidth: 1 },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.sm + 2, paddingVertical: 2 },
+  sectionHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm + 2, flex: 1 },
+  sectionIcon: { width: 30, height: 30, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  sectionTitle: { fontSize: FontSize.md, fontWeight: '700', flexShrink: 1 },
+  formGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
   formItem: { width: '47%', flexGrow: 1 },
   formItemFull: { width: '100%' },
-  tipRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: Spacing.lg + 4,
-    marginTop: Spacing.xs,
-  },
-  tipText: { flex: 1, lineHeight: 16 },
-  bottomBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.sm + 2,
-    borderTopWidth: 1,
-  },
-  saveButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: BorderRadius.lg,
-    overflow: 'hidden',
-  },
-  saveButtonInner: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.sm,
-    paddingVertical: Spacing.md + 4,
-  },
-  saveButtonText: { color: '#FFFFFF', fontWeight: '600' },
+  subLabel: { fontSize: FontSize.sm, fontWeight: '500', marginTop: Spacing.md, marginBottom: Spacing.xs },
+  exerciseTypes: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginBottom: Spacing.sm + 2 },
+  exerciseTypeBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm + 2, borderRadius: BorderRadius.md, borderWidth: 1 },
+  starRow: { flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.sm },
+  tagsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.xs },
+  menstrualRow: { flexDirection: 'row', alignItems: 'center', marginTop: Spacing.md },
+  toggleRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, borderWidth: 1, borderRadius: BorderRadius.md, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm + 2 },
+  toggleLabel: { fontSize: FontSize.sm, fontWeight: '500' },
+  moodRow: { flexDirection: 'row', justifyContent: 'space-between', gap: Spacing.xs },
+  moodBtn: { flex: 1, alignItems: 'center', paddingVertical: Spacing.sm, borderRadius: BorderRadius.md, borderWidth: 1, gap: 2 },
+  moodEmoji: { fontSize: 22 },
+  moodLabel: { fontSize: 10, fontWeight: '500' },
+  bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: Spacing.lg, paddingTop: Spacing.sm + 2, borderTopWidth: 1 },
+  saveButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.md + 4, borderRadius: BorderRadius.lg, overflow: 'hidden' },
+  saveButtonInner: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm + 2, paddingVertical: Spacing.md + 4 },
+  saveIconWrap: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  saveButtonText: { color: '#FFFFFF', fontSize: FontSize.lg, fontWeight: '700' },
+  summaryBadge: { paddingHorizontal: Spacing.sm + 4, paddingVertical: Spacing.xs, borderRadius: BorderRadius.full, marginRight: Spacing.xs },
+  summaryText: { fontSize: FontSize.xs, fontWeight: '700' },
+  sportTotalText: { fontSize: FontSize.sm, marginBottom: Spacing.sm },
+  sportTotalValue: { fontSize: FontSize.lg, fontWeight: '700' },
+  sportEmpty: { alignItems: 'center', paddingVertical: Spacing.lg, gap: Spacing.sm },
+  sportBtns: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.sm },
+  addSportBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: Spacing.md, borderRadius: BorderRadius.md, borderWidth: 1 },
+  clearSportBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: Spacing.sm + 2, borderRadius: BorderRadius.md, borderWidth: 1, marginTop: Spacing.sm },
+  quickRow: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.sm },
+  quickBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: Spacing.sm, borderRadius: BorderRadius.md, borderWidth: 1 },
+  quickText: { fontSize: FontSize.xs, fontWeight: '500' },
+  emptyListText: { fontSize: FontSize.sm, textAlign: 'center', paddingVertical: Spacing.md, lineHeight: 20 },
+  listItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: Spacing.sm + 2, borderBottomWidth: 1 },
+  listItemMain: { flex: 1 },
+  listItemName: { fontSize: FontSize.md, fontWeight: '500' },
+  listItemTag: { fontSize: FontSize.xs, fontWeight: '400' },
+  listItemSub: { fontSize: FontSize.sm, marginTop: 2 },
+  listItemRemark: { fontSize: FontSize.xs, marginTop: 2 },
+  summaryBox: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md, padding: Spacing.sm + 2, borderRadius: BorderRadius.md, marginTop: Spacing.sm },
+  summaryItem: { fontSize: FontSize.sm },
+  summaryBold: { fontSize: FontSize.md, fontWeight: '700' },
+  addListBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.xs, paddingVertical: Spacing.sm + 2, borderRadius: BorderRadius.md, borderWidth: 1, marginTop: Spacing.sm + 2 },
+  addListBtnText: { fontSize: FontSize.sm, fontWeight: '500' },
+  modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' },
+  pickerModal: { borderTopLeftRadius: BorderRadius.xxl, borderTopRightRadius: BorderRadius.xxl, padding: Spacing.lg, paddingBottom: 40, maxHeight: '80%' },
+  pickerHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.md },
+  pickerTitle: { fontSize: FontSize.xl, fontWeight: '700' },
+  foodCategory: { marginBottom: Spacing.md },
+  foodCategoryTitle: { fontSize: FontSize.sm, fontWeight: '600', marginBottom: Spacing.xs },
+  foodGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+  foodChip: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm + 2, borderRadius: BorderRadius.md, borderWidth: 1, minWidth: 80 },
+  foodChipName: { fontSize: FontSize.sm, fontWeight: '500' },
+  foodChipCal: { fontSize: FontSize.xs, marginTop: 2 },
+  customAddBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.xs, paddingVertical: Spacing.md + 2, borderRadius: BorderRadius.lg, marginTop: Spacing.md },
+  customAddBtnText: { color: '#FFF', fontSize: FontSize.md, fontWeight: '600' },
+  inputModal: { borderTopLeftRadius: BorderRadius.xxl, borderTopRightRadius: BorderRadius.xxl, padding: Spacing.lg, paddingBottom: 40 },
+  inputModalTitle: { fontSize: FontSize.xl, fontWeight: '700', marginBottom: 2 },
+  inputModalSub: { fontSize: FontSize.sm, marginBottom: Spacing.md },
+  inputLabel: { fontSize: FontSize.sm, fontWeight: '500', marginBottom: Spacing.xs + 2, marginTop: Spacing.sm },
+  modalTextInput: { borderWidth: 1, borderRadius: BorderRadius.md, paddingHorizontal: Spacing.md, paddingVertical: Spacing.md + 2, fontSize: FontSize.md },
+  mealTypeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs },
+  mealTypeBtn: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: BorderRadius.full, borderWidth: 1 },
+  nutritionPreview: { borderRadius: BorderRadius.md, paddingVertical: Spacing.sm, paddingHorizontal: Spacing.md, marginTop: Spacing.sm },
+  nutritionPreviewRow: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' },
+  nutritionPreviewItem: { fontSize: FontSize.sm, fontWeight: '600' },
+  modalButtons: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.lg },
+  modalBtn: { flex: 1, alignItems: 'center', paddingVertical: Spacing.md + 4, borderRadius: BorderRadius.md, borderWidth: 1 },
 });

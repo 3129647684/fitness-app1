@@ -1,5 +1,37 @@
 {
-  "name": "BodyDataApp",
-  "displayName": "身体数据记录",
-  "slug": "bodydata-app"
+  "expo": {
+    "name": "BodyDataApp",
+    "slug": "bodydata-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.zza1.bodydataapp"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.zza1.bodydataapp"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a3619811-b03f-4907-9ae7-c9320b35d645"
+      }
+    }
+  }
 }

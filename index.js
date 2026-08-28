@@ -1,3 +1,5 @@
+// Web 平台 polyfill 必须在所有 expo 模块之前导入
+import './src/polyfill.web';
 import 'react-native-gesture-handler';
 import { AppRegistry, Platform } from 'react-native';
 import App from './src/App';

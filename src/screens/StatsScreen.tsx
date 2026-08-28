@@ -130,60 +130,85 @@ export default function StatsScreen(_props: StatsScreenProps) {
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={{ paddingTop: insets.top + Spacing.lg, paddingBottom: 100 }}
+      contentContainerStyle={{ paddingBottom: 100 }}
     >
-      <View style={styles.header}>
+      <View style={[
+        styles.header,
+        {
+          paddingTop: insets.top + Spacing.lg,
+          backgroundColor: colors.surface,
+          borderBottomLeftRadius: BorderRadius.xl,
+          borderBottomRightRadius: BorderRadius.xl,
+          ...Shadows.sm,
+        },
+      ]}>
         <Text style={[styles.title, { color: colors.text }]}>统计图表</Text>
+        <Text style={[styles.headerSub, { color: colors.textTertiary }]}>追踪你的身体变化趋势</Text>
       </View>
 
       <View style={styles.metricSelector}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {METRICS.map(m => (
-            <TouchableOpacity
-              key={m}
-              onPress={() => setSelectedMetric(m)}
-              style={[
-                styles.metricBtn,
-                {
-                  backgroundColor: selectedMetric === m ? colors.primary : colors.surfaceVariant,
-                  borderColor: selectedMetric === m ? colors.primary : colors.border,
-                },
-              ]}
-              activeOpacity={0.7}
-            >
-              <Text style={{ color: selectedMetric === m ? '#FFF' : colors.textSecondary, fontSize: FontSize.sm, fontWeight: '500' }}>
-                {MetricLabels[m]?.label ?? m}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {METRICS.map(m => {
+            const ml = MetricLabels[m];
+            const on = selectedMetric === m;
+            return (
+              <TouchableOpacity
+                key={m}
+                onPress={() => setSelectedMetric(m)}
+                style={[
+                  styles.metricBtn,
+                  {
+                    backgroundColor: on ? colors.primary : colors.surfaceVariant,
+                    borderColor: on ? colors.primary : colors.borderLight,
+                    ...(on ? Shadows.sm : {}),
+                  },
+                ]}
+                activeOpacity={0.7}
+              >
+                {ml?.icon && (
+                  <Icons name={ml.icon} size={14} color={on ? '#FFF' : colors.textSecondary} />
+                )}
+                <Text style={{ color: on ? '#FFF' : colors.textSecondary, fontSize: FontSize.sm, fontWeight: '600', letterSpacing: 0.2, marginLeft: ml?.icon ? 4 : 0 }}>
+                  {ml?.label ?? m}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
       </View>
 
       <View style={styles.rangeSelector}>
-        {RANGES.map(r => (
-          <TouchableOpacity
-            key={r.value}
-            onPress={() => setSelectedRange(r.value)}
-            style={[
-              styles.rangeBtn,
-              {
-                backgroundColor: selectedRange === r.value ? colors.primary : colors.surfaceVariant,
-                borderColor: selectedRange === r.value ? colors.primary : colors.border,
-              },
-            ]}
-            activeOpacity={0.7}
-          >
-            <Text style={{ color: selectedRange === r.value ? '#FFF' : colors.textSecondary, fontSize: FontSize.sm, fontWeight: '500' }}>
-              {r.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        {RANGES.map(r => {
+          const on = selectedRange === r.value;
+          return (
+            <TouchableOpacity
+              key={r.value}
+              onPress={() => setSelectedRange(r.value)}
+              style={[
+                styles.rangeBtn,
+                {
+                  backgroundColor: on ? colors.primary : colors.surfaceVariant,
+                  borderColor: on ? colors.primary : colors.borderLight,
+                  ...(on ? Shadows.sm : {}),
+                },
+              ]}
+              activeOpacity={0.7}
+            >
+              <Text style={{ color: on ? '#FFF' : colors.textSecondary, fontSize: FontSize.sm, fontWeight: '600', letterSpacing: 0.2 }}>
+                {r.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
-      <View style={[styles.chartSection, { backgroundColor: colors.card, borderColor: colors.border }, Shadows.sm]}>
-        <Text style={[styles.chartTitle, { color: colors.text }]}>
-          {metricInfo?.label}趋势
-        </Text>
+      <View style={[styles.chartSection, { backgroundColor: colors.card, borderColor: colors.borderLight }, Shadows.md]}>
+        <View style={styles.chartHeader}>
+          <View style={[styles.chartIndicator, { backgroundColor: colors.primary }]} />
+          <Text style={[styles.chartTitle, { color: colors.text }]}>
+            {metricInfo?.label}趋势
+          </Text>
+        </View>
         <TrendChart
           data={chartData}
           metricLabel={metricInfo?.label ?? ''}
@@ -194,7 +219,10 @@ export default function StatsScreen(_props: StatsScreenProps) {
       </View>
 
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>{metricInfo?.label}汇总</Text>
+        <View style={styles.sectionHeader}>
+          <View style={[styles.sectionIndicator, { backgroundColor: Colors.dynamic.heart || '#22C55E' }]} />
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{metricInfo?.label}汇总</Text>
+        </View>
         <View style={styles.statGrid}>
           <StatCard label="起始值" value={fmtStat(firstValue)} unit={metricInfo?.unit} icon="play-outline" />
           <StatCard label="当前值" value={fmtStat(lastValue)} unit={metricInfo?.unit} icon="flag-outline" color={colors.primary} />
@@ -212,7 +240,10 @@ export default function StatsScreen(_props: StatsScreenProps) {
       </View>
 
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>综合统计</Text>
+        <View style={styles.sectionHeader}>
+          <View style={[styles.sectionIndicator, { backgroundColor: Colors.dynamic.coach || '#3B82F6' }]} />
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>综合统计</Text>
+        </View>
         <View style={styles.statGrid}>
           <StatCard label="记录天数" value={allRecords.length} unit="天" icon="calendar-outline" />
           <StatCard label="运动次数" value={exerciseCount} unit="次" icon="barbell-outline" color={colors.accent} />
@@ -227,15 +258,18 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: {
     paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.sm,
-    marginBottom: Spacing.xs,
+    paddingBottom: Spacing.lg,
   },
   title: { fontSize: FontSize.xxxl, fontWeight: '700' },
+  headerSub: { fontSize: FontSize.sm, marginTop: 2, opacity: 0.8 },
   metricSelector: {
     paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.sm + 2,
+    marginBottom: Spacing.md,
+    marginTop: Spacing.md,
   },
   metricBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: Spacing.md + 2,
     paddingVertical: Spacing.sm + 2,
     borderRadius: BorderRadius.full,
@@ -246,39 +280,59 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.sm,
     paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.lg,
   },
   rangeBtn: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: Spacing.sm + 2,
-    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.sm + 4,
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
   },
   chartSection: {
     marginHorizontal: Spacing.lg,
-    padding: Spacing.md + 2,
-    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.xl,
     borderWidth: 1,
     marginBottom: Spacing.xl,
   },
+  chartHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+    gap: Spacing.sm,
+  },
+  chartIndicator: {
+    width: 8,
+    height: 24,
+    borderRadius: 4,
+  },
   chartTitle: {
-    fontSize: FontSize.md,
-    fontWeight: '600',
-    marginBottom: Spacing.sm + 2,
+    fontSize: FontSize.lg,
+    fontWeight: '700',
   },
   section: {
     marginBottom: Spacing.xl,
     paddingHorizontal: Spacing.lg,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+    gap: Spacing.sm,
+  },
+  sectionIndicator: {
+    width: 6,
+    height: 20,
+    borderRadius: 3,
+  },
   sectionTitle: {
-    fontSize: FontSize.md,
-    fontWeight: '600',
-    marginBottom: Spacing.sm + 2,
+    fontSize: FontSize.lg,
+    fontWeight: '700',
   },
   statGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: Spacing.sm + 2,
+    gap: Spacing.md,
   },
 });

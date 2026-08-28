@@ -1,9 +1,12 @@
-﻿{
+{
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "lib": ["ES2022", "DOM"],
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
     "jsx": "react-native",
     "strict": true,
     "noImplicitAny": true,
@@ -24,9 +27,17 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     },
-    "types": ["react-native", "react", "@types/sql.js", "@types/react-native-vector-icons", "node"]
+    "types": [
+      "react-native",
+      "react",
+      "@types/sql.js",
+      "@types/react-native-vector-icons",
+      "node"
+    ]
   },
   "include": [
     "src/**/*.ts",
@@ -43,5 +54,6 @@
     "android",
     "ios",
     "webpack"
-  ]
+  ],
+  "extends": "expo/tsconfig.base"
 }

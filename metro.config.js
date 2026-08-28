@@ -1,18 +1,13 @@
-const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
+const { getDefaultConfig } = require('@expo/metro-config');
 
-const defaultConfig = getDefaultConfig(__dirname);
+const config = getDefaultConfig(__dirname);
 
-const config = {
-  resolver: {
-    assetExts: [...defaultConfig.resolver.assetExts, 'wasm'],
-    sourceExts: [
-      'web.tsx',
-      'web.ts',
-      'web.jsx',
-      'web.js',
-      ...defaultConfig.resolver.sourceExts,
-    ],
-  },
-};
+config.resolver.assetExts.push('wasm');
+config.resolver.sourceExts.unshift(
+  'web.tsx',
+  'web.ts',
+  'web.jsx',
+  'web.js',
+);
 
-module.exports = mergeConfig(defaultConfig, config);
+module.exports = config;

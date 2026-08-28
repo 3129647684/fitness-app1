@@ -75,8 +75,8 @@ export default function LoginScreen(_props: LoginScreenProps) {
     <GradientView
       colors={
         isDark
-          ? ['#1B4332', '#121212']
-          : ['#D8F3DC', '#F6FBF4', '#FFFFFF']
+          ? ['#0D2818', '#1B4332', '#121212']
+          : ['#B8DCC5', '#D8F3DC', '#F6FBF4']
       }
       style={styles.gradient}
     >

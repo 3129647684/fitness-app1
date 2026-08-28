@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Animated } from 'react-native';
 import { Icon, IconName } from '@/components/Icons';
 import { Colors, Spacing, BorderRadius, FontSize, Shadows } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useResponsiveTokens } from '@/hooks/useResponsive';
+import { MetricLabels } from '@/constants/theme';
 
 interface MetricCardProps {
   label: string;
@@ -38,8 +39,18 @@ export function MetricCard({ label, value, unit, icon, color, change }: MetricCa
 
   const displayValue = value === null || value === undefined || value === '' ? '未记录' : String(value);
   const isEmpty = value === null || value === undefined || value === '';
-  const accent = color ?? colors.primary;
-  const cardIcon = icon ?? DEFAULT_ICONS[label] ?? 'ellipse-outline';
+  const metricInfo = MetricLabels[label as keyof typeof MetricLabels];
+  const accent = color ?? metricInfo?.color ?? colors.primary;
+  const cardIcon = icon ?? DEFAULT_ICONS[label] ?? metricInfo?.icon ?? 'ellipse-outline';
+
+  // 根据指标类型选择发光效果
+  const getGlow = () => {
+    if (!accent || isEmpty) return Shadows.sm;
+    if (accent.includes('red') || accent === '#EF4444') return Shadows.glowRed;
+    if (accent.includes('green') || accent === '#22C55E') return Shadows.glowGreen;
+    if (accent.includes('blue') || accent === '#3B82F6') return Shadows.glowBlue;
+    return Shadows.sm;
+  };
 
   // 窄屏时每列占 48%（保留 gap 间距），保证两列对齐、单卡片不挤压
   const cardWidth = tokens.isCompact
@@ -53,21 +64,22 @@ export function MetricCard({ label, value, unit, icon, color, change }: MetricCa
       {
         backgroundColor: colors.card,
         borderColor: colors.borderLight,
-        padding: s.md + (tokens.isCompact ? 0 : 2),
-        borderRadius: r.lg,
-        minHeight: tokens.isCompact ? 88 : 96,
+        padding: s.md + (tokens.isCompact ? 0 : 4),
+        borderRadius: r.xl,
+        minHeight: tokens.isCompact ? 92 : 100,
         minWidth: tokens.isCompact ? 0 : 140,
+        borderWidth: 1,
       },
-      Shadows.sm,
+      getGlow(),
     ]}>
       <View style={[styles.iconWrap, {
         backgroundColor: isEmpty ? colors.surfaceVariant : accent + (colorScheme === 'dark' ? '33' : '1A'),
-        width: tokens.isCompact ? 24 : 28,
-        height: tokens.isCompact ? 24 : 28,
-        borderRadius: r.sm,
+        width: tokens.isCompact ? 28 : 32,
+        height: tokens.isCompact ? 28 : 32,
+        borderRadius: r.md,
         marginBottom: s.sm,
       }]}>
-        <Icon name={cardIcon} size={tokens.isCompact ? 13 : 15} color={isEmpty ? colors.textTertiary : accent} />
+        <Icon name={cardIcon} size={tokens.isCompact ? 15 : 18} color={isEmpty ? colors.textTertiary : accent} />
       </View>
       <Text style={[styles.label, { color: colors.textSecondary, fontSize: f.sm }]}>{label}</Text>
       <View style={styles.valueRow}>
@@ -107,7 +119,6 @@ export function MetricCard({ label, value, unit, icon, color, change }: MetricCa
 const styles = StyleSheet.create({
   card: {
     flex: 1,
-    borderWidth: 1,
   },
   iconWrap: {
     alignItems: 'center',
@@ -115,7 +126,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontWeight: '500',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   valueRow: {
     flexDirection: 'row',
@@ -133,7 +144,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
-    marginTop: 2,
+    marginTop: 4,
   },
   change: {
     fontWeight: '700',

@@ -147,31 +147,47 @@ export default function HistoryScreen(_props: HistoryScreenProps) {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { paddingTop: insets.top + Spacing.lg }]}>
+      <View style={[
+        styles.header,
+        {
+          paddingTop: insets.top + Spacing.lg,
+          backgroundColor: colors.surface,
+          borderBottomLeftRadius: BorderRadius.xl,
+          borderBottomRightRadius: BorderRadius.xl,
+          ...Shadows.sm,
+        },
+      ]}>
         <Text style={[styles.title, { color: colors.text }]}>历史记录</Text>
-        <View style={[styles.viewToggle, { backgroundColor: colors.surfaceVariant, borderColor: colors.border }]}>
+        <View style={[
+          styles.viewToggle,
+          {
+            backgroundColor: colors.surfaceVariant,
+            borderColor: colors.borderLight,
+            ...Shadows.sm,
+          },
+        ]}>
           <TouchableOpacity
             onPress={() => setViewMode('list')}
-            style={[styles.toggleBtn, viewMode === 'list' && { backgroundColor: colors.primary }]}
+            style={[styles.toggleBtn, viewMode === 'list' && { backgroundColor: colors.primary, ...Shadows.sm }]}
             activeOpacity={0.7}
           >
             <Icons name="list" size={18} color={viewMode === 'list' ? '#FFF' : colors.textSecondary} />
-            <Text style={{ color: viewMode === 'list' ? '#FFF' : colors.textSecondary, fontSize: FontSize.sm, marginLeft: 4 }}>列表</Text>
+            <Text style={{ color: viewMode === 'list' ? '#FFF' : colors.textSecondary, fontSize: FontSize.sm, marginLeft: 4, fontWeight: '600' }}>列表</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setViewMode('calendar')}
-            style={[styles.toggleBtn, viewMode === 'calendar' && { backgroundColor: colors.primary }]}
+            style={[styles.toggleBtn, viewMode === 'calendar' && { backgroundColor: colors.primary, ...Shadows.sm }]}
             activeOpacity={0.7}
           >
             <Icons name="calendar" size={18} color={viewMode === 'calendar' ? '#FFF' : colors.textSecondary} />
-            <Text style={{ color: viewMode === 'calendar' ? '#FFF' : colors.textSecondary, fontSize: FontSize.sm, marginLeft: 4 }}>日历</Text>
+            <Text style={{ color: viewMode === 'calendar' ? '#FFF' : colors.textSecondary, fontSize: FontSize.sm, marginLeft: 4, fontWeight: '600' }}>日历</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {viewMode === 'list' && (
         <>
-          <View style={[styles.searchBar, { backgroundColor: colors.surface, borderColor: colors.border }, Shadows.sm]}>
+          <View style={[styles.searchBar, { backgroundColor: colors.surface, borderColor: colors.borderLight }, Shadows.md]}>
             <Icons name="search" size={18} color={colors.textTertiary} />
             <TextInput
               style={[styles.searchInput, { color: colors.text }]}
@@ -198,12 +214,13 @@ export default function HistoryScreen(_props: HistoryScreenProps) {
                     styles.filterBtn,
                     {
                       backgroundColor: filter === val ? colors.primary : colors.surfaceVariant,
-                      borderColor: filter === val ? colors.primary : colors.border,
+                      borderColor: filter === val ? colors.primary : colors.borderLight,
+                      ...(filter === val ? Shadows.sm : {}),
                     },
                   ]}
                   activeOpacity={0.7}
                 >
-                  <Text style={{ color: filter === val ? '#FFF' : colors.textSecondary, fontSize: FontSize.sm, fontWeight: '500' }}>
+                  <Text style={{ color: filter === val ? '#FFF' : colors.textSecondary, fontSize: FontSize.sm, fontWeight: '600', letterSpacing: 0.2 }}>
                     {label}
                   </Text>
                 </TouchableOpacity>
@@ -234,61 +251,80 @@ export default function HistoryScreen(_props: HistoryScreenProps) {
       )}
 
       {viewMode === 'calendar' && (
-        <ScrollView contentContainerStyle={{ padding: Spacing.lg, paddingTop: insets.top + Spacing.lg }}>
-          <View style={[styles.calendarHeader, { borderColor: colors.border }]}>
-            <TouchableOpacity onPress={() => changeMonth(-1)}>
-              <Icons name="chevron-back" size={24} color={colors.primary} />
-            </TouchableOpacity>
-            <Text style={[styles.calendarTitle, { color: colors.text }]}>
-              {calYear}年 {monthNames[calMonth]}
-            </Text>
-            <TouchableOpacity onPress={() => changeMonth(1)}>
-              <Icons name="chevron-forward" size={24} color={colors.primary} />
-            </TouchableOpacity>
-          </View>
+        <ScrollView contentContainerStyle={{ padding: Spacing.lg, paddingBottom: Spacing.xl }}>
+          <View style={[
+            styles.calendarCard,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.borderLight,
+              ...Shadows.md,
+            },
+          ]}>
+            <View style={[styles.calendarHeader, { borderColor: colors.border }]}>
+              <TouchableOpacity
+                onPress={() => changeMonth(-1)}
+                style={[styles.calendarArrowBtn, { backgroundColor: colors.surfaceVariant }]}
+              >
+                <Icons name="chevron-back" size={20} color={colors.primary} />
+              </TouchableOpacity>
+              <Text style={[styles.calendarTitle, { color: colors.text }]}>
+                {calYear}年 {monthNames[calMonth]}
+              </Text>
+              <TouchableOpacity
+                onPress={() => changeMonth(1)}
+                style={[styles.calendarArrowBtn, { backgroundColor: colors.surfaceVariant }]}
+              >
+                <Icons name="chevron-forward" size={20} color={colors.primary} />
+              </TouchableOpacity>
+            </View>
 
-          <View style={styles.weekdayRow}>
-            {['日', '一', '二', '三', '四', '五', '六'].map(day => (
-              <Text key={day} style={[styles.weekdayText, { color: colors.textTertiary }]}>{day}</Text>
-            ))}
-          </View>
+            <View style={styles.weekdayRow}>
+              {['日', '一', '二', '三', '四', '五', '六'].map(day => (
+                <View key={day} style={styles.weekdayCell}>
+                  <Text style={[styles.weekdayText, { color: colors.textSecondary }]}>{day}</Text>
+                </View>
+              ))}
+            </View>
 
-          <View style={styles.calendarGrid}>
-            {monthDays.map((day, i) => {
-              const hasRecord = datesWithRecords.has(day.date);
-              const isToday = day.date === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
-              return (
-                <TouchableOpacity
-                  key={i}
-                  style={[
-                    styles.calendarDay,
-                    isToday && { backgroundColor: colors.primarySoft, borderRadius: BorderRadius.md },
-                  ]}
-                  onPress={() => {
-                    if (hasRecord) {
-                      Alert.alert(day.date, '该日期已有记录', [
-                        {
-                          text: '查看/编辑详情',
-                          onPress: () => navigation.navigate('Record', { initialDate: day.date }),
-                        },
-                        { text: '确定' },
-                      ]);
-                    }
-                  }}
-                >
-                  <Text
+            <View style={styles.calendarGrid}>
+              {monthDays.map((day, i) => {
+                const hasRecord = datesWithRecords.has(day.date);
+                const isToday = day.date === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
+                return (
+                  <TouchableOpacity
+                    key={i}
                     style={[
-                      styles.calendarDayText,
-                      { color: day.isCurrentMonth ? colors.text : colors.textTertiary },
-                      isToday && { fontWeight: '700', color: colors.primary },
+                      styles.calendarDay,
+                      isToday && { backgroundColor: colors.primarySoft, borderRadius: BorderRadius.md, ...Shadows.sm },
+                      hasRecord && !isToday && { backgroundColor: colors.surfaceVariant },
                     ]}
+                    onPress={() => {
+                      if (hasRecord) {
+                        Alert.alert(day.date, '该日期已有记录', [
+                          {
+                            text: '查看/编辑详情',
+                            onPress: () => navigation.navigate('Record', { initialDate: day.date }),
+                          },
+                          { text: '确定' },
+                        ]);
+                      }
+                    }}
+                    activeOpacity={hasRecord ? 0.7 : 1}
                   >
-                    {day.day}
-                  </Text>
-                  {hasRecord && <View style={[styles.recordDot, { backgroundColor: colors.primary }]} />}
-                </TouchableOpacity>
-              );
-            })}
+                    <Text
+                      style={[
+                        styles.calendarDayText,
+                        { color: day.isCurrentMonth ? colors.text : colors.textTertiary },
+                        isToday && { fontWeight: '700', color: colors.primary },
+                      ]}
+                    >
+                      {day.day}
+                    </Text>
+                    {hasRecord && <View style={[styles.recordDot, { backgroundColor: colors.primary }]} />}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </View>
         </ScrollView>
       )}
@@ -377,20 +413,35 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.md,
     borderBottomWidth: 1,
   },
+  calendarArrowBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  calendarCard: {
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    padding: Spacing.lg,
+    marginTop: Spacing.sm,
+  },
   calendarTitle: {
     fontSize: FontSize.lg,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   weekdayRow: {
     flexDirection: 'row',
-    marginTop: Spacing.sm + 2,
+    marginTop: Spacing.md,
     marginBottom: Spacing.xs,
   },
-  weekdayText: {
+  weekdayCell: {
     flex: 1,
-    textAlign: 'center',
+    alignItems: 'center',
+  },
+  weekdayText: {
     fontSize: FontSize.sm,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   calendarGrid: {
     flexDirection: 'row',
