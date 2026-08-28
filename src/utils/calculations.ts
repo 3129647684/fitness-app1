@@ -1,19 +1,9 @@
+// 身体数据计算工具（精简版）
+
 export function calcBMI(weight: number | null, heightCm: number | null): number | null {
   if (!weight || !heightCm || heightCm <= 0) return null;
   const heightM = heightCm / 100;
   return Math.round((weight / (heightM * heightM)) * 10) / 10;
-}
-
-export function calcBMR(
-  weight: number | null,
-  heightCm: number | null,
-  age: number | null,
-  gender: 'male' | 'female' | null
-): number | null {
-  if (!weight || !heightCm || !age || !gender) return null;
-  const base = 10 * weight + 6.25 * heightCm - 5 * age;
-  const result = gender === 'male' ? base + 5 : base - 161;
-  return Math.round(result);
 }
 
 export function getBMICategory(bmi: number | null): { label: string; color: string } {
@@ -22,12 +12,6 @@ export function getBMICategory(bmi: number | null): { label: string; color: stri
   if (bmi < 24) return { label: '正常', color: '#40916C' };
   if (bmi < 28) return { label: '超重', color: '#D4956B' };
   return { label: '肥胖', color: '#C7555A' };
-}
-
-export function getSleepScoreLabel(score: number | null): string {
-  if (!score) return '未评';
-  const labels = ['', '极差', '较差', '一般', '良好', '极佳'];
-  return labels[score] || '未评';
 }
 
 export function clampValue(value: number, min: number, max: number): number {
@@ -40,10 +24,6 @@ export function isValidWeight(w: number): boolean {
 
 export function isValidBodyFat(bf: number): boolean {
   return bf >= 0 && bf <= 80;
-}
-
-export function isValidCircumference(c: number): boolean {
-  return c >= 10 && c <= 300;
 }
 
 export function formatValue(value: number | null, decimals = 1): string {
