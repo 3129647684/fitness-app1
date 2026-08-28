@@ -6,7 +6,7 @@ import { Icon } from '@/components/Icons';
 import { GradientView } from '@/components/GradientView';
 import { MetricTile } from '@/components/MetricTile';
 import { MiniChart } from '@/components/MiniChart';
-import { Colors, Spacing, BorderRadius, FontSize, Shadows } from '@/constants/theme';
+import { Colors, Spacing, BorderRadius, Shadows } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useResponsiveTokens } from '@/hooks/useResponsive';
 import { getTodayRecord, getRecentRecords, getUserProfile } from '@/database/db';
@@ -15,7 +15,6 @@ import { calcBMI, formatValue } from '@/utils/calculations';
 import { formatDateWithWeekday, getTodayString } from '@/utils/date';
 import type { HomeScreenProps } from '@/navigation/RootNavigator';
 
-// 极简首页：问候 + 今日核心数据 + 记录按钮 + 7天趋势
 export default function HomeScreen(_props: HomeScreenProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
@@ -48,8 +47,9 @@ export default function HomeScreen(_props: HomeScreenProps) {
   const bmi = todayRecord?.bmi ?? calcBMI(weight, profile?.height ?? null);
 
   const chartData = recentRecords
-    .filter((r) => r.weight !== null)
-    .map((r) => ({ date: r.record_date, value: r.weight }));
+    .filter((rec) => rec.weight !== null)
+    .map((rec) => ({ date: rec.record_date, value: rec.weight }));
+
   const trendValue = chartData.length > 0
     ? formatValue(chartData[chartData.length - 1]?.value ?? null)
     : null;
@@ -78,7 +78,6 @@ export default function HomeScreen(_props: HomeScreenProps) {
       contentContainerStyle={{ paddingBottom: s.xxxl * 2 }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} tintColor={colors.primary} />}
     >
-      {/* Hero 区域 */}
       <GradientView
         colors={isDark ? ['#0D2818', '#1B4332', '#2D6A4F'] : ['#B8DCC5', '#D8F3DC', '#E8F5EB']}
         style={{
@@ -91,6 +90,7 @@ export default function HomeScreen(_props: HomeScreenProps) {
       >
         <View pointerEvents="none" style={styles.heroGlow1} />
         <View pointerEvents="none" style={styles.heroGlow2} />
+
         <View style={styles.heroTop}>
           <Text style={[styles.heroDate, { color: isDark ? 'rgba(255,255,255,0.72)' : '#3E7A5C', fontSize: f.sm }]}>
             {formatDateWithWeekday(todayStr)}
@@ -123,28 +123,24 @@ export default function HomeScreen(_props: HomeScreenProps) {
         </TouchableOpacity>
       </GradientView>
 
-      {/* 今日核心数据 */}
       <View style={[styles.body, { padding: s.lg }]}>
         <Section icon="scale-outline" title="核心数据" color="#22C55E">
           <Grid>
             <MetricTile label="体重" value={todayRecord?.weight ?? null} unit="kg" icon="scale-outline" onPress={toRecord} />
             <MetricTile label="BMI" value={bmi ?? null} icon="analytics-outline" onPress={toRecord} />
+            <MetricTile label="体脂率" value={todayRecord?.body_fat ?? null} unit="%" icon="pie-chart-outline" onPress={toRecord} />
             <MetricTile label="腰围" value={todayRecord?.waist ?? null} unit="cm" icon="resize-outline" onPress={toRecord} />
-            <MetricTile label="臀围" value={todayRecord?.hip ?? null} unit="cm" icon="body-outline" onPress={toRecord} />
           </Grid>
         </Section>
 
-        <Section icon="pie-chart-outline" title="体成分" color="#EF4444">
+        <Section icon="moon-outline" title="睡眠" color="#8B5CF6">
           <Grid>
-            <MetricTile label="体脂率" value={todayRecord?.body_fat ?? null} unit="%" icon="pie-chart-outline" onPress={toRecord} />
-            <MetricTile label="肌肉量" value={todayRecord?.muscle_mass ?? null} unit="kg" icon="barbell-outline" onPress={toRecord} />
-            <MetricTile label="水分率" value={todayRecord?.water_rate ?? null} unit="%" icon="water-outline" onPress={toRecord} />
-            <MetricTile label="基础代谢" value={bmr ?? null} unit="kcal" icon="flame-outline" onPress={toRecord} />
+            <MetricTile label="睡眠时长" value={todayRecord?.sleep_duration ?? null} unit="h" icon="moon-outline" onPress={toRecord} />
           </Grid>
         </Section>
 
         <Section icon="trending-up-outline" title="近7天体重趋势" color="#3B82F6">
-          <View style={[styles.trendCard, { backgroundColor: colors.card, borderColor: colors.borderLight, borderRadius: r.lg }, Shadows.md]}>
+          <View style={[styles.trendCard, { backgroundColor: colors.card, borderColor: colors.borderLight, borderRadius: r.lg }, Shadows.sm]}>
             {chartData.length > 0 ? (
               <>
                 <MiniChart data={chartData} height={tokens.isCompact ? 90 : 108} />
@@ -154,38 +150,12 @@ export default function HomeScreen(_props: HomeScreenProps) {
               </>
             ) : (
               <View style={styles.emptyState}>
-                <View style={[styles.emptyIconWrap, { borderColor: colors.border, borderRadius: r.md }]}>
-                  <Icon name="trending-up-outline" size={tokens.isCompact ? 30 : 34} color={colors.primarySoft} />
-                </View>
-                <Text style={[styles.emptyText, { color: colors.textSecondary, fontSize: f.md, marginTop: s.md }]}>暂无趋势数据</Text>
+                <Icon name="trending-up-outline" size={tokens.isCompact ? 28 : 32} color={colors.primarySoft} />
+                <Text style={[styles.emptyText, { color: colors.textSecondary, fontSize: f.sm, marginTop: s.sm }]}>暂无趋势数据</Text>
               </View>
-              <View>
-                <Text style={[styles.sleepLabel, { color: colors.textSecondary, fontSize: f.xs }]}>昨夜睡眠</Text>
-                <Text style={[styles.sleepValue, { color: colors.text, fontSize: f.lg }]}>
-                  {todayRecord.sleep_duration} <Text style={{ fontSize: f.sm, color: colors.textSecondary }}>小时</Text>
-                </Text>
-              </View>
-            </View>
+            )}
           </View>
-        )}
-
-        {/* 7天体重趋势 */}
-        <Text style={[styles.sectionTitle, { color: colors.text, fontSize: f.md, marginTop: s.xl, marginBottom: s.md }]}>近7天体重</Text>
-        <View style={[styles.trendCard, { backgroundColor: colors.card, borderColor: colors.borderLight, borderRadius: r.lg }, Shadows.sm]}>
-          {chartData.length > 0 ? (
-            <>
-              <MiniChart data={chartData} height={tokens.isCompact ? 90 : 108} />
-              <Text style={[styles.trendHint, { color: colors.textSecondary, fontSize: f.sm, marginTop: s.sm }]}>
-                最近体重：{trendValue} kg
-              </Text>
-            </>
-          ) : (
-            <View style={styles.emptyState}>
-              <Icon name="trending-up-outline" size={tokens.isCompact ? 28 : 32} color={colors.primarySoft} />
-              <Text style={[styles.emptyText, { color: colors.textSecondary, fontSize: f.sm, marginTop: s.sm }]}>暂无趋势数据</Text>
-            </View>
-          )}
-        </View>
+        </Section>
       </View>
     </ScrollView>
   );
@@ -217,9 +187,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: Spacing.md,
   },
-  heroDate: {
-    fontWeight: '600',
-  },
+  heroDate: { fontWeight: '600' },
   heroBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -228,21 +196,12 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.xs + 1,
     borderRadius: BorderRadius.full,
   },
-  heroBadgeText: {
-    fontWeight: '700',
-  },
-  heroTitle: {
-    fontWeight: '800',
-    marginTop: Spacing.xs,
-  },
-  heroSub: {
-    marginTop: 4,
-  },
+  heroBadgeText: { fontWeight: '700' },
+  heroTitle: { fontWeight: '800', marginTop: Spacing.xs },
+  heroSub: { marginTop: 4 },
   addBtn: {
     borderRadius: BorderRadius.full,
     marginTop: Spacing.lg,
-  },
-  addBtnInner: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -257,13 +216,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  addBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '800',
-  },
-  body: {
-    padding: Spacing.lg,
-  },
+  addBtnText: { color: '#FFFFFF', fontWeight: '800' },
+  body: { padding: Spacing.lg },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -277,26 +231,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  sectionTitle: {
-    fontWeight: '700',
-  },
+  sectionTitle: { fontWeight: '700' },
   trendCard: {
     padding: Spacing.md + 2,
     borderWidth: 1,
   },
-  trendHint: {
-    textAlign: 'center',
-  },
+  trendHint: { textAlign: 'center' },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.xxl,
   },
-  emptyIconWrap: {
-    borderWidth: 2,
-    padding: Spacing.lg,
-  },
-  emptyText: {
-    fontWeight: '600',
-  },
+  emptyText: { fontWeight: '600' },
 });
