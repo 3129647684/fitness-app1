@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView,
   Platform, ActivityIndicator, ScrollView,
@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Icons } from '@/components/Icons';
 import { GradientView } from '@/components/GradientView';
-import { api, ApiError } from '@/api/client';
+import { authApi, ApiError } from '@/api/client';
 import { saveSession } from '@/database/session';
 import { setActiveUser } from '@/database/db';
 import { syncPull } from '@/database/sync';
@@ -40,7 +40,7 @@ export default function LoginScreen(_props: LoginScreenProps) {
     setError('');
   };
 
-  const submit = async (e?: any) => {
+  const submit = async () => {
     if (loading) return;
     setError('');
     const name = username.trim();
@@ -52,8 +52,8 @@ export default function LoginScreen(_props: LoginScreenProps) {
     try {
       const res =
         mode === 'login'
-          ? await api.login(name, password)
-          : await api.register(name, password, nickname.trim() || undefined);
+          ? await authApi.login(name, password)
+          : await authApi.register(name, password, nickname.trim() || undefined);
 
       await saveSession({ token: res.token, user: { ...res.user, nickname: res.user.nickname ?? null } });
       setActiveUser(res.user.id);
