@@ -1,17 +1,19 @@
 {
-  "name": "bodydata-server",
-  "version": "1.0.0",
-  "private": true,
-  "type": "module",
-  "main": "server.js",
+  "name": "fitness-app-server",
+  "version": "2.0.0",
+  "description": "健身数据记录服务端（模块化+安全加固）",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js"
-  },
-  "dependencies": {
-    "express": "^4.19.2",
-    "jsonwebtoken": "^9.0.2"
+    "start": "node index.js",
+    "dev": "node --watch index.js"
   },
   "engines": {
     "node": ">=22.5.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.4.0",
+    "jsonwebtoken": "^9.0.2"
   }
 }
