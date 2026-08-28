@@ -97,5 +97,5 @@ jobs:
       - name: 输出构建链接
         run: |
           echo "✅ Android APK 构建已提交到 EAS Build"
-          echo "📱 项目: https://expo.dev/accounts/3129647684/projects/bodydata-app/builds"
+          echo "📱 项目: https://expo.dev/accounts/magicersss/projects/bodydata-app/builds"
           echo "⏳ 构建通常需要 10-20 分钟，完成后可在上方链接下载 APK"
