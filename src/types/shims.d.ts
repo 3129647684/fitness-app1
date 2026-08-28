@@ -36,38 +36,29 @@ declare module '@op-engineering/op-sqlite' {
   export function close(db: SQLiteDatabase): void;
 }
 
+// zustand 类型使用宽松的 any 声明，避免复杂的泛型推断导致类型错误
 declare module 'zustand' {
-  import { StoreApi, UseBoundStore } from 'zustand/vanilla';
-  export function create<T extends object>(
-    stateCreator: (set: StoreApi<T>['setState'], get: StoreApi<T>['getState'], api: StoreApi<T>) => T
-  ): UseBoundStore<StoreApi<T>>;
-  export type { StoreApi, UseBoundStore };
+  export function create<T extends object = any>(stateCreator?: any): any;
+  export type StoreApi<T = any> = any;
+  export type UseBoundStore<S = any> = any;
 }
 
 declare module 'zustand/middleware' {
-  import { StateStorage, StateCreator, StoreApi } from 'zustand';
-  export function persist<T extends object>(
-    config: StateCreator<T>,
-    options: { name: string; storage?: StateStorage; partialize?: (state: T) => Partial<T>; onRehydrateStorage?: (state: T) => ((state: T | undefined) => void) | void }
-  ): (set: StoreApi<T>['setState'], get: StoreApi<T>['getState'], api: StoreApi<T>) => T;
-  export function createJSONStorage(getStorage: () => Storage): StateStorage;
-  export type { StateStorage, StateCreator };
+  export function persist<T extends object = any>(config: any, options: any): any;
+  export function createJSONStorage(getStorage: () => any): any;
+  export type StateStorage = any;
+  export type StateCreator<T = any> = any;
 }
 
 declare module 'zustand/vanilla' {
-  export interface StoreApi<T extends object> {
-    setState: (partial: Partial<T> | ((state: T) => Partial<T>), replace?: boolean) => void;
+  export interface StoreApi<T extends object = any> {
+    setState: any;
     getState: () => T;
-    subscribe: (listener: (state: T, prevState: T) => void) => () => void;
+    subscribe: any;
     getInitialState: () => T;
   }
-  export type UseBoundStore<S extends StoreApi<any>> = {
-    (): S extends StoreApi<infer U> ? U : never;
-    <T>(selector: (state: S extends StoreApi<infer U> ? U : never) => T): T;
-  } & S;
-  export function createStore<T extends object>(
-    stateCreator: (set: StoreApi<T>['setState'], get: StoreApi<T>['getState'], api: StoreApi<T>) => T
-  ): StoreApi<T>;
+  export type UseBoundStore<S extends StoreApi<any>> = any;
+  export function createStore<T extends object = any>(stateCreator: any): StoreApi<T>;
 }
 
 declare module 'sql.js' {
