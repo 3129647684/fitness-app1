@@ -2,58 +2,25 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "lib": [
-      "ES2022",
-      "DOM"
-    ],
-    "jsx": "react-native",
+    "moduleResolution": "bundler",
+    "lib": ["ESNext", "DOM"],
+    "jsx": "react-jsx",
     "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noImplicitReturns": false,
-    "noFallthroughCasesInSwitch": false,
-    "allowSyntheticDefaultImports": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
     "isolatedModules": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "allowJs": true,
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
-    },
-    "types": [
-      "react-native",
-      "react",
-      "@types/sql.js",
-      "@types/react-native-vector-icons",
-      "node"
-    ]
+      "@/*": ["src/*"]
+    }
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "index.js",
-    "app/**/*.ts",
-    "app/**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "server",
-    "admin",
-    "android",
-    "ios",
-    "webpack"
-  ],
-  "extends": "expo/tsconfig.base"
+  "include": ["src/**/*", "index.js", "App.tsx", "metro.config.js", "webpack.config.js"],
+  "exclude": ["node_modules", "web-build", "dist", ".expo"]
 }
