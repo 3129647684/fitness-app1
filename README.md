@@ -1,78 +1,110 @@
-# BodyDataApp（身体数据记录）
+# BodyDataApp - 极简身体数据记录
 
-一个**移动端身体/健身数据记录器**：本地优先、多用户、可云同步，同一套代码同时支持 Android / iOS / Web。
+一款专注核心指标的身体数据记录应用，本地优先，支持多端同步。
 
-> 当前定位：**数据记录器**。只负责把身体围度、饮食、运动、睡眠等数据如实记录、统计并同步到自建后台；训练计划、动作引导、提醒、AI 等“助手”能力暂不开发，后续按需求再评估。
+## 功能特性
+
+- **5 个核心指标**：体重、BMI（自动计算）、体脂率、腰围、睡眠时长
+- **本地优先**：数据存储在设备本地 SQLite，离线可用
+- **多端同步**：全量快照云端备份，支持 Android / iOS / Web
+- **3 Tab 极简导航**：首页 / 记录 / 我的（含历史记录 + 趋势图表 + 设置）
+- **管理后台**：用户管理、数据统计、CSV 导出
 
 ## 技术栈
 
-- 客户端：裸 React Native 0.79.2 + React 19 + react-navigation（原生用 Metro，Web 用 webpack 打 `react-native-web`）
-- 数据：本地 SQLite（原生 `@op-engineering/op-sqlite`，Web `sql.js`）+ AsyncStorage 会话
-- 服务端：Node ≥ 22.5 + Express + JWT + `node:sqlite`（多用户、数据同步、托管动作 GIF）
-- 管理后台：`admin/`（React 18 + Vite + recharts）
+| 层级 | 技术 |
+|------|------|
+| 客户端 | React Native 0.79 + React 19 + react-navigation |
+| 数据层 | op-sqlite（原生）/ sql.js（Web）双驱动 |
+| 服务端 | Node ≥22.5 + Express + JWT + node:sqlite |
+| 管理后台 | React 18 + Vite + recharts |
+| 工程化 | TypeScript + ESLint + Prettier + GitHub Actions |
 
-## 环境要求
+## 项目结构
 
-- Node.js ≥ 22.5（服务端用到内置 `node:sqlite`）
-- 原生端另需 Android Studio/JDK 17（Android）或 Xcode + CocoaPods（iOS）
+```
+├── src/                    # 客户端源码
+│   ├── api/client.ts       # 统一 API 客户端
+│   ├── components/         # 通用组件
+│   ├── constants/          # 配置常量
+│   ├── database/           # 数据层（db/sync/session/types/migrations）
+│   ├── hooks/              # 自定义 Hooks
+│   ├── navigation/         # 导航（3 Tab）
+│   ├── screens/            # 页面（Home/Record/Settings/Login）
+│   └── utils/              # 工具函数
+├── server/                 # 服务端（模块化）
+│   ├── index.js            # 入口
+│   ├── config.js           # 配置（JWT_SECRET 强制环境变量）
+│   ├── db.js               # 数据库初始化
+│   ├── middleware/auth.js  # 认证中间件
+│   ├── routes/             # 路由（auth/sync/admin/stats）
+│   └── utils/password.js   # 密码哈希
+├── admin/                  # 管理后台
+├── deploy/                 # 部署配置（nginx + pm2）
+└── .github/workflows/      # CI 流水线
+```
 
-## 快捷运行（PC 上预览，推荐 Web 端）
+## 快速开始
 
-**一键启动(推荐)**：
+### 客户端
 
 ```bash
-npm run dev
+# 安装依赖
+npm install
+
+# Web 开发
+npm run web
+
+# 类型检查
+npm run typecheck
+
+# 代码规范检查
+npm run lint
 ```
 
-`npm run dev` 会一起启动后端(4000)与 Web 预览(8082)，并把两个进程的输出加上 `[server]`/`[web]` 前缀。已在运行的端口会被自动复用、跳过启动。没有重复占用时再按需用命令：
+### 服务端
 
 ```bash
-npm run server   # 仅后(端口 4000，认证/同步/GIF 动图)
-npm run web      # 仅 Web 预览(端口 8082)
+cd server
+npm install
+
+# 配置环境变量（必须）
+cp ../.env.example .env
+# 编辑 .env，设置 JWT_SECRET
+
+# 启动
+npm start
 ```
 
-浏览器打开 <http://localhost:8082> 即可看到应用。默认请求 `http://localhost:4000`，登录、同步、动作 GIF 均可正常使用。
+## 环境变量
 
-### 原生端（可选）
+| 变量 | 必填 | 说明 |
+|------|------|------|
+| `JWT_SECRET` | ✅ | JWT 签名密钥，至少 32 位随机字符串 |
+| `PORT` | ❌ | 服务端口，默认 4000 |
+| `CORS_ORIGIN` | ❌ | CORS 白名单，默认 `*`（生产建议限制） |
+| `ADMIN_USERNAME` | ❌ | 管理员用户名，默认 admin |
+| `ADMIN_PASSWORD` | ❌ | 管理员密码，不设置则首次启动随机生成 |
 
-原生目录 `android/`、`ios/` 默认未入库（见 `.gitignore`），首次需要生成：
+> **安全提醒**：`JWT_SECRET` 未设置时服务启动会直接失败，切勿使用默认值。
 
-```bash
-npm run init:native   # 会打印生成原生目录的命令，按提示执行
-npm run android       # 或 npm run ios
-```
+## 安全特性
 
-## 最适配移动端的预览方法（在电脑上）
+- JWT 密钥强制环境变量，无硬编码兜底
+- 管理员密码可配置或首次随机生成
+- 登录接口限流（5 次/分钟/IP）
+- CORS 白名单可配置
+- 密码 scrypt 哈希 + timingSafeEqual 防时序攻击
+- SQL 全部参数化，无注入风险
+- 请求体大小限制（10MB）
+- HTTPS 部署模板（nginx）
 
-这套代码已内置响应式：视口宽度 `≤480px` 走 `compact` 紧凑尺度，`481–768px` 走 `medium`，`>768px` 走 `regular`。所以**在电脑上把浏览器窗口缩成手机宽度即可**，最贴近真机效果：
+## 部署
 
-1. 打开 DevTools（F12）→ 右上角切换到**设备工具栏**。
-2. 选一个手机机型，例如 **iPhone 12/13/14（390×844）** 或 **Pixel 5（393×851）**，并保持**竖屏**。
-3. 刷新页面。此时应用会自动进入紧凑布局（更小的字号/间距/圆角），底部 Tab 也更紧凑，模拟真机手感。
-4. 若你要看动图或同步数据，保持后端 `npm run server` 运行即可。
+参考 `deploy/` 目录：
+- `nginx.conf.template`：Nginx HTTPS 反向代理配置
+- `ecosystem.config.js`：PM2 进程管理配置
 
-> 提示：真机上动图/同步需要把 `SERVER_URL` 指向电脑局域网 IP（如 `http://192.168.1.100:4000`），而不是 `localhost`。
+## 许可证
 
-## 动作动图说明
-
-动作演示 GIF **不走离线打包**（以减小 APK 体积），而是运行时从后端加载：`${SERVER_URL}/videos/<mediaId>.gif`。GIF 文件存放在 `scripts/videos/`，由后端静态托管。若后端未启动或文件缺失，界面显示“暂无动图”占位，不影响其他功能。
-
-## 常用脚本
-
-```bash
-npm run typecheck   # TypeScript 严格类型检查
-npm run web:build   # 生产构建 Web（输出到 dist/）
-npm run build:apk   # 生成 Android 安装包
-npm run admin:dev   # 管理后台开发
-```
-
-## 目录速览
-
-```
-src/          客户端源码（screens / components / database / navigation …）
-server/       自建后端（Express + sqlite）
-admin/        数据管理后台（Vite）
-assets/       动作库 JSON、部位图标、字体
-scripts/      原生目录初始化、GIF 静态资源等服务脚本
-deploy/       部署配置（nginx / pm2 / 打包说明）
-```
+MIT
