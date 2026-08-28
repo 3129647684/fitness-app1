@@ -2,17 +2,18 @@
 // 避免 'Cannot read properties of undefined (reading "NativeModule")' 错误
 // 此文件必须在 expo 模块导入之前执行
 if (typeof globalThis !== 'undefined') {
-  globalThis.expo = globalThis.expo || {};
-  globalThis.expo.NativeModule = globalThis.expo.NativeModule || {};
-  globalThis.expo.modules = globalThis.expo.modules || {};
+  const g = globalThis as any;
+  g.expo = g.expo || {};
+  g.expo.NativeModule = g.expo.NativeModule || {};
+  g.expo.modules = g.expo.modules || {};
   // 注册找不到的原生模块
-  globalThis.expo.modules.ExpoLinking = globalThis.expo.modules.ExpoLinking || {};
-  globalThis.expo.modules.ExpoDocumentPicker = globalThis.expo.modules.ExpoDocumentPicker || {};
-  globalThis.expo.modules.ExpoFileSystem = globalThis.expo.modules.ExpoFileSystem || {};
-  globalThis.expo.modules.ExpoSharing = globalThis.expo.modules.ExpoSharing || {};
-  globalThis.expo.modules.ExpoFont = globalThis.expo.modules.ExpoFont || {};
+  g.expo.modules.ExpoLinking = g.expo.modules.ExpoLinking || {};
+  g.expo.modules.ExpoDocumentPicker = g.expo.modules.ExpoDocumentPicker || {};
+  g.expo.modules.ExpoFileSystem = g.expo.modules.ExpoFileSystem || {};
+  g.expo.modules.ExpoSharing = g.expo.modules.ExpoSharing || {};
+  g.expo.modules.ExpoFont = g.expo.modules.ExpoFont || {};
   // 标记 web 环境，避免 expo-modules-core 尝试加载原生模块
-  (globalThis as any).ExpoDomWebView = { isNative: false };
+  g.ExpoDomWebView = { isNative: false };
 }
 
 // 修复 expo-font 错误 "Class extends value undefined is not a constructor or null"

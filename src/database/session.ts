@@ -1,4 +1,4 @@
-﻿import { create } from 'zustand';
+import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setCurrentUserId } from './db';
@@ -23,7 +23,7 @@ const STORAGE_KEY = 'bodydata.session.v1';
 
 const rawUseSessionStore = create<SessionState>()(
   persist(
-    (set, get) => ({
+    (set: any, get: any) => ({
       user: null,
       token: null,
       _hydrated: false,
@@ -61,9 +61,9 @@ const rawUseSessionStore = create<SessionState>()(
     }),
     {
       name: STORAGE_KEY,
-      storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({ user: state.user, token: state.token }),
-      onRehydrateStorage: () => (state) => {
+      storage: createJSONStorage(() => AsyncStorage as any),
+      partialize: (state: any) => ({ user: state.user, token: state.token }),
+      onRehydrateStorage: () => (state: any) => {
         if (state) {
           state._hydrated = true;
           if (state.user) {
