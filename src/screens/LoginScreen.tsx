@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView,
   Platform, ActivityIndicator, ScrollView,
@@ -14,7 +14,7 @@ import { syncPull } from '@/database/sync';
 import { Colors, Spacing, BorderRadius, FontSize } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useResponsiveTokens } from '@/hooks/useResponsive';
-import { SERVER_URL } from '@/constants/config';
+import { getServerUrl, setServerUrl, getServerUrlSync, DEFAULT_SERVER_URL } from '@/utils/serverConfig';
 import type { LoginScreenProps } from '@/navigation/RootNavigator';
 
 type Mode = 'login' | 'register';
@@ -27,13 +27,34 @@ export default function LoginScreen(_props: LoginScreenProps) {
   const s = tokens.spacing;
   const f = tokens.fontSize;
   const r = tokens.borderRadius;
-
   const [mode, setMode] = useState<Mode>('login');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [nickname, setNickname] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [serverUrl, setServerUrlState] = useState(getServerUrlSync());
+  const [editingServer, setEditingServer] = useState(false);
+  const [serverInput, setServerInput] = useState(getServerUrlSync());
+
+  useEffect(() => {
+    getServerUrl().then((url) => {
+      setServerUrlState(url);
+      setServerInput(url);
+    });
+  }, []);
+
+  const saveServerUrl = async () => {
+    const trimmed = serverInput.trim();
+    if (!trimmed) {
+      setError('服务器地址不能为空');
+      return;
+    }
+    await setServerUrl(trimmed);
+    setServerUrlState(trimmed);
+    setEditingServer(false);
+    setError('');
+  };
 
   const switchMode = (m: Mode) => {
     setMode(m);
@@ -54,7 +75,6 @@ export default function LoginScreen(_props: LoginScreenProps) {
         mode === 'login'
           ? await authApi.login(name, password)
           : await authApi.register(name, password, nickname.trim() || undefined);
-
       await saveSession({ token: res.token, user: { ...res.user, nickname: res.user.nickname ?? null } });
       setActiveUser(res.user.id);
       syncPull(res.token)
@@ -169,6 +189,7 @@ export default function LoginScreen(_props: LoginScreenProps) {
                   tokens={tokens}
                 />
               )}
+
               <Field
                 icon="at-outline"
                 placeholder="用户名"
@@ -179,6 +200,7 @@ export default function LoginScreen(_props: LoginScreenProps) {
                 colors={colors}
                 tokens={tokens}
               />
+
               <Field
                 icon="lock-closed-outline"
                 placeholder="密码（至少 6 位）"
@@ -219,9 +241,53 @@ export default function LoginScreen(_props: LoginScreenProps) {
                 )}
               </TouchableOpacity>
 
-              <Text style={[styles.serverHint, { color: colors.textTertiary, fontSize: f.xs, marginTop: s.xs }]}>
-                服务器：{SERVER_URL}
-              </Text>
+              {editingServer ? (
+                <View style={[styles.serverEditRow, { marginTop: s.xs }]}>
+                  <TextInput
+                    style={[styles.serverInput, {
+                      color: colors.text,
+                      backgroundColor: colors.surfaceVariant,
+                      borderColor: colors.borderLight,
+                      borderRadius: r.sm,
+                      paddingHorizontal: s.sm,
+                      paddingVertical: s.sm,
+                      fontSize: f.xs,
+                      flex: 1,
+                    }]}
+                    value={serverInput}
+                    onChangeText={setServerInput}
+                    placeholder="http://192.168.1.100:4000"
+                    placeholderTextColor={colors.textTertiary}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                  <TouchableOpacity onPress={saveServerUrl} style={[styles.serverSaveBtn, {
+                    backgroundColor: colors.primary,
+                    paddingHorizontal: s.md,
+                    paddingVertical: s.sm,
+                    borderRadius: r.sm,
+                    marginLeft: s.sm,
+                  }]}>
+                    <Text style={{ color: '#FFF', fontSize: f.xs, fontWeight: '600' }}>保存</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => { setEditingServer(false); setServerInput(serverUrl); }} style={{
+                    paddingHorizontal: s.sm, paddingVertical: s.sm, marginLeft: 4,
+                  }}>
+                    <Text style={{ color: colors.textTertiary, fontSize: f.xs }}>取消</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={[styles.serverHintRow, { marginTop: s.xs }]}
+                  onPress={() => { setServerInput(serverUrl); setEditingServer(true); }}
+                  activeOpacity={0.6}
+                >
+                  <Icons name="settings" size={tokens.isCompact ? 12 : 13} color={colors.textTertiary} />
+                  <Text style={[styles.serverHint, { color: colors.textTertiary, fontSize: f.xs, marginLeft: 4 }]}>
+                    服务器：{serverUrl}（点击修改）
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -381,5 +447,21 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: FontSize.xs,
     marginTop: Spacing.xs,
+  },
+  serverHintRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  serverEditRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  serverInput: {
+    borderWidth: 1,
+  },
+  serverSaveBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
