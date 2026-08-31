@@ -1,68 +1,52 @@
 name: CI
-
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
-
 jobs:
   typecheck:
     name: TypeScript 类型检查
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: 设置 Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
-
       - name: 安装依赖
         run: npm install --legacy-peer-deps
-
       - name: TypeScript 类型检查
         run: npx tsc --noEmit
-
   server-test:
     name: 服务端测试
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: 设置 Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-
       - name: 安装服务端依赖
         working-directory: server
         run: npm install
-
       - name: 服务端语法检查
         working-directory: server
         run: node --check index.js && node --check config.js && node --check db.js
-
   lint:
     name: 代码规范检查
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: 设置 Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
-
       - name: 安装依赖
         run: npm install --legacy-peer-deps
-
       - name: ESLint 检查
         run: npx eslint src/ --ext .ts,.tsx || true
-
   build-android:
     name: 构建 Android APK (EAS Build)
     runs-on: ubuntu-latest
@@ -71,29 +55,22 @@ jobs:
     needs: [typecheck, server-test]
     steps:
       - uses: actions/checkout@v4
-
       - name: 设置 Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
-
       - name: 安装依赖
         run: npm install --legacy-peer-deps
-
       - name: 安装 EAS CLI
         run: npm install -g eas-cli
-
       - name: 登录 Expo
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: eas whoami
-
       - name: 构建 Android APK (preview)
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: eas build --platform android --profile preview --non-interactive --no-wait
-
       - name: 输出构建链接
         run: |
           echo "✅ Android APK 构建已提交到 EAS Build"
