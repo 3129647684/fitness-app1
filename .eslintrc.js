@@ -32,6 +32,7 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/ban-ts-comment': 'warn',
+    '@typescript-eslint/no-var-requires': 'off',
     // 通用
     'no-console': ['warn', { allow: ['warn', 'error'] }],
     'prefer-const': 'error',
