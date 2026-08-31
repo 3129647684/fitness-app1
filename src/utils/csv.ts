@@ -1,4 +1,7 @@
 import { Platform } from 'react-native';
+import { Paths, File } from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import * as DocumentPicker from 'expo-document-picker';
 import { BodyRecord } from '@/database/types';
 
 // 精简后的导出字段：5 个核心指标
@@ -18,7 +21,6 @@ export function toCSV<T extends Record<string, any>>(
   if (rows.length === 0 && !columns) return '\uFEFF';
   const keys = columns ? columns.map((c) => c.key as string) : Object.keys(rows[0]);
   const labels = columns ? columns.map((c) => c.label) : keys;
-
   const escapeField = (value: any): string => {
     if (value === null || value === undefined) return '';
     const str = String(value);
@@ -27,7 +29,6 @@ export function toCSV<T extends Record<string, any>>(
     }
     return str;
   };
-
   const headerRow = labels.map(escapeField).join(',');
   const dataRows = rows.map((row) => keys.map((key) => escapeField((row as any)[key])).join(','));
   return '\uFEFF' + [headerRow, ...dataRows].join('\n');
@@ -36,7 +37,6 @@ export function toCSV<T extends Record<string, any>>(
 export function parseCSV<T extends Record<string, any>>(csv: string): T[] {
   const content = csv.replace(/^\uFEFF/, '');
   const result: T[] = [];
-
   const parseLine = (line: string): string[] => {
     const fields: string[] = [];
     let current = '';
@@ -58,7 +58,6 @@ export function parseCSV<T extends Record<string, any>>(csv: string): T[] {
     fields.push(current);
     return fields;
   };
-
   const lines: string[] = [];
   let currentLine = '';
   let inQuotes = false;
@@ -76,7 +75,6 @@ export function parseCSV<T extends Record<string, any>>(csv: string): T[] {
   }
   if (currentLine.length > 0) lines.push(currentLine);
   if (lines.length === 0) return [];
-
   const headers = parseLine(lines[0]);
   for (let i = 1; i < lines.length; i++) {
     const values = parseLine(lines[i]);
@@ -106,11 +104,14 @@ export async function exportRecordsCsv(
     });
   } else {
     try {
-      const RNFS = require('react-native-fs');
-      const Share = require('react-native-share').default;
-      const filepath = `${RNFS.DocumentDirectoryPath}/${filename}`;
-      await RNFS.writeFile(filepath, csvString, 'utf8');
-      await Share.open({ url: `file://${filepath}`, message: '身体数据导出', title: filename });
+      const file = new File(Paths.document, filename);
+      file.write(csvString);
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(file.uri, {
+          mimeType: 'text/csv',
+          dialogTitle: '身体数据导出',
+        });
+      }
     } catch (e) { console.warn('[csv] export failed', e); }
   }
 }
@@ -135,10 +136,16 @@ export async function importRecordsCsv(): Promise<{ rows: BodyRecord[] } | null>
     });
   } else {
     try {
-      const DocumentPicker = require('react-native-document-picker').default;
-      const RNFS = require('react-native-fs');
-      const result = await DocumentPicker.pickSingle({ type: [DocumentPicker.types.csv], copyTo: 'documentDirectory' });
-      const content = await RNFS.readFile(result.uri, 'utf8');
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['text/csv', 'application/csv', '.csv'],
+        copyToCacheDirectory: true,
+      });
+      if (result.canceled || !result.assets || result.assets.length === 0) {
+        return null;
+      }
+      const fileAsset = result.assets[0];
+      const file = new File(fileAsset.uri);
+      const content = await file.text();
       return { rows: parseCSV<BodyRecord>(content) };
     } catch (e) { console.warn('[csv] import failed', e); return null; }
   }

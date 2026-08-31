@@ -1,17 +1,13 @@
-// Web 平台 polyfill 必须在所有 expo 模块之前导入
-import './src/polyfill.web';
+import { Platform } from 'react-native';
 import 'react-native-gesture-handler';
-import { AppRegistry, Platform } from 'react-native';
-import App from './src/App';
-import appConfig from './app.json';
-const appName = appConfig.name;
 
-AppRegistry.registerComponent(appName, () => App);
-
-// 仅在 Web 端主动挂载；原生端由系统自动启动 registerComponent
-if (Platform.OS === 'web' && typeof document !== 'undefined') {
-  const rootTag = document.getElementById('root');
-  if (rootTag) {
-    AppRegistry.runApplication(appName, { rootTag });
-  }
+// Web 平台 polyfill（仅在 Web 端加载，原生端不需要）
+if (Platform.OS === 'web') {
+  require('./src/polyfill.web');
 }
+
+import { registerRootComponent } from 'expo';
+import App from './src/App';
+
+// Expo 标准方式注册根组件，自动处理组件名匹配，避免 "main has not been registered" 错误
+registerRootComponent(App);
