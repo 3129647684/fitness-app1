@@ -2,7 +2,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STORAGE_KEY = 'bodydata.server_url';
-export const DEFAULT_SERVER_URL = 'http://192.168.1.100:4000';
+export const DEFAULT_SERVER_URL = 'http://10.72.99.123:4000';
 
 let cachedServerUrl: string | null = null;
 
