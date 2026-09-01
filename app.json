@@ -13,12 +13,17 @@
       "bundleIdentifier": "com.zza1.bodydataapp"
     },
     "android": {
-      "package": "com.zza1.bodydataapp"
+      "package": "com.zza1.bodydataapp",
+      "usesCleartextTraffic": true
     },
+    "plugins": [
+      "./plugins/withAndroidCleartext"
+    ],
     "extra": {
       "eas": {
-        "projectId": "31bebd15-30a7-46e4-991a-a3af5c7ded1b"
+        "projectId": "a3619811-b03f-4907-9ae7-c9320b35d645"
       }
-    }
+    },
+    "owner": "zza1"
   }
 }
